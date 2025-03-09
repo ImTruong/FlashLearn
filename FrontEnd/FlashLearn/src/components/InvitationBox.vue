@@ -22,8 +22,26 @@
             apiUrl.value = `/class/invitation/${requestId}`;
         }
         try {
-            const response = await getRequest(apiUrl.value, token);
-            classItem.value = response.data.classInformationResponse;
+            // const response = await getRequest(apiUrl.value, token);
+            // classItem.value = response.data.classInformationResponse;
+            const response = {
+                requesterName: "User 1",
+                inviterUsername: "User 2"
+            }
+            if (requestId == 2){
+                classItem.value = {
+                    className: "Class 1",
+                    numberOfSets: 5,
+                    numberOfMembers: 3
+                }
+            } else {
+                classItem.value = {
+                    className: "Class 2",
+                    numberOfSets: 3,
+                    numberOfMembers: 2
+                }
+            }
+
             if (requestType === "CLASS_JOIN_REQUEST") {
                 fromUser.value = response.requesterName;
                 userMessgage.value = "Requester: ";
