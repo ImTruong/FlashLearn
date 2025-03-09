@@ -8,6 +8,9 @@ import YourLibrary from "@/pages/YourLibrary.vue";
 import HomeView from "@/pages/HomeView.vue";
 import Review from "@/pages/Review.vue";
 import Statistics from "@/pages/Statistics.vue";
+import AdminMember from "@/pages/AdminMember.vue";
+import AdminClass from "@/pages/AdminClass.vue";
+import AdminSet from "@/pages/AdminSet.vue";
 
 
 const router = createRouter({
@@ -59,6 +62,21 @@ const router = createRouter({
             name: "library",
             component: YourLibrary
         },
+        {
+            path: "/admin",
+            name: "admin",
+            component: AdminMember
+        },
+        {
+            path: "/admin/class",
+            name: "adminClass",
+            component: AdminClass
+        },
+        {
+            path: "/admin/set",
+            name: "adminSet",
+            component: AdminSet
+        }
     ]
 })
 
