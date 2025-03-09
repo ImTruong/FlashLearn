@@ -1,8 +1,13 @@
 import {createRouter, createWebHistory} from "vue-router";
-import App from "@/App.vue";
 import Login from "@/pages/Login.vue";
 import SignUp from "@/pages/SignUp.vue";
 import User from "@/pages/User.vue";
+import Fillgame from "@/pages/FillingGame.vue";
+import FlashCard from "@/pages/FlashCardView.vue";
+import YourLibrary from "@/pages/YourLibrary.vue";
+import HomeView from "@/pages/HomeView.vue";
+import Review from "@/pages/Review.vue";
+import Statistics from "@/pages/Statistics.vue";
 
 
 const router = createRouter({
@@ -13,6 +18,12 @@ const router = createRouter({
             name: "login",
             component: Login
         },
+        
+        {
+            path: "/",
+            name: "home",
+            component: HomeView
+        },
         {
             path: "/signup",
             name: "signup",
@@ -22,7 +33,32 @@ const router = createRouter({
             path: "/profile",
             name: "profile",
             component: User
-        }
+        },
+        {
+            path: "/fillgame/:id",
+            name: "fillgame",
+            component: Fillgame
+        },
+        {
+            path: "/review",
+            name: "review",
+            component: Review
+        },
+        {
+            path: "/flashcard/:id",
+            name: "flashcard",
+            component: FlashCard
+        },
+        {
+            path: "/statistics",
+            name: "Statistics",
+            component: Statistics
+        },
+        {
+            path: "/library",
+            name: "library",
+            component: YourLibrary
+        },
     ]
 })
 
