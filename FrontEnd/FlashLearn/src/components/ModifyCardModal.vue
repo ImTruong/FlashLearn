@@ -9,6 +9,7 @@
   const definitions = ref([]);
   const isDropdownOpen= ref(false);
   const showImg = ref(false);
+  const token = localStorage.getItem('token');
   const props = defineProps({
     setName: {
       type: String,
@@ -68,7 +69,7 @@
         audioElement.style.display = "none";
       }
     }
-    definitions.value = data[0].meanings?.flatMap(meaning =>
+    definitions.value = data[0]?.meanings?.flatMap(meaning =>
       meaning.definitions?.map(def => def.definition) || []
     )
   };
@@ -79,62 +80,34 @@
     }
   });
 
-  // const saveData = async () => {
-  //   const formData = new FormData();
-  //   formData.append('setId', props.setId);
-  //   if (newWord.value.id) formData.append('id', newWord.value.id);
-  //   formData.append('word', newWord.value.word);
-  //   formData.append('ipa', newWord.value.ipa);
-  //   if (newWord.value.audio) formData.append('audio', newWord.value.audio);
-  //   formData.append('definition', newWord.value.definition);
-  //   formData.append('example', newWord.value.example);
-  //   if (newWord.value.image) formData.append('image', newWord.value.image);
-
-  //   try {
-  //     if (props.word) {
-  //       const response = await updateWord(formData);
-  //       emit('update', newWord.value);
-  //       alert(response.message);
-  //     } else {
-  //       const response = await createWord(formData);
-  //       emit('save', response.data);
-  //       alert(response.message);
-  //     }
-  //     closeForm();
-  //   } catch (error) {
-  //     console.log(error)
-  //     alert(error);
-  //   }
-  // };
-
   const saveData = async () => {
-    const wordData = {
-        setId: props.setId,
-        id: newWord.value.id || null,
-        word: newWord.value.word,
-        ipa: newWord.value.ipa,
-        audio: newWord.value.audio || null,
-        definition: newWord.value.definition,
-        example: newWord.value.example,
-        image: newWord.value.image || null
-    };
+    const formData = new FormData();
+    formData.append('setId', props.setId);
+    if (newWord.value.id) formData.append('id', newWord.value.id);
+    formData.append('word', newWord.value.word);
+    formData.append('ipa', newWord.value.ipa);
+    if (newWord.value.audio) formData.append('audio', newWord.value.audio);
+    formData.append('definition', newWord.value.definition);
+    formData.append('example', newWord.value.example);
+    if (newWord.value.image) formData.append('image', newWord.value.image);
 
     try {
-        let response;
-        if (props.word) {
-            response = await updateWord(wordData); // Gửi object thay vì FormData
-            emit('update', newWord.value);
-        } else {
-            response = await createWord(wordData);
-            emit('save', response.data);
-        }
-        alert(response.message);
-        closeForm();
+      let response;
+      if (props.word) {
+        response = await updateWord(formData,token);
+        emit('update', newWord.value);
+      } else {
+        response = await createWord(formData,token);
+        emit('save', response.data);
+      }
+      alert(response.message);
+      closeForm();
     } catch (error) {
-        console.error(error);
-        alert(error.message || "An error occurred");
+      console.error(error);
+      alert(error.message || "An error occurred");
     }
-};
+  };
+
 
   const toggleDropdown = () =>{
       isDropdownOpen.value = !isDropdownOpen.value;

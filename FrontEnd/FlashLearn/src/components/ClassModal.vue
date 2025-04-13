@@ -52,11 +52,8 @@
             alert(response.message);
             emit("close");
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
-                alert(error.response.data.message);
-            } else {
-                alert("An error occurred. Please try again.");
-            }
+            console.log(error)
+            alert(error);
         }
     };
 

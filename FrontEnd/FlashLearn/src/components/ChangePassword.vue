@@ -1,34 +1,34 @@
 <script setup>
-import OverlayBackground from './OverlayBackground.vue';
-import { defineEmits, reactive, ref } from 'vue';
-import { changePassword } from '@/apis/userApi';
+  import OverlayBackground from './OverlayBackground.vue';
+  import { defineEmits, reactive, ref } from 'vue';
+  import { changePassword } from '@/apis/userApi';
 
-const emit = defineEmits(['close']);
-const visible = ref(true);
+  const emit = defineEmits(['close']);
+  const visible = ref(true);
 
-let changePasswordRequest = reactive({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-});
+  let changePasswordRequest = reactive({
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+  });
 
-// Phương thức đóng form
-const closeForm = () => {
-    emit('close');
-};
+  // Phương thức đóng form
+  const closeForm = () => {
+      emit('close');
+  };
 
-// Phương thức kiểm tra và gửi dữ liệu
-const saveData = async () => {
-    const token = localStorage.getItem('token');
-    try {
-        const response = await changePassword(changePasswordRequest, token);
-        alert(response);
-        emit('close');
-        closeForm();
-    } catch (error) {
-        alert(error);
-    }
-};
+  // Phương thức kiểm tra và gửi dữ liệu
+  const saveData = async () => {
+      const token = localStorage.getItem('token');
+      try {
+          const response = await changePassword(changePasswordRequest, token);
+          alert(response);
+          emit('close');
+          closeForm();
+      } catch (error) {
+          alert(error);
+      }
+  };
 </script>
 
 <template>
@@ -40,7 +40,7 @@ const saveData = async () => {
         <img src="../assets/close.svg" alt="Icon" class="close-icon" @click="closeForm">
         <div class="password">
             <label>Current password</label>
-            <input type="password" v-model="changePasswordRequest.currentPassword">
+            <input type="password" v-model="changePasswordRequest.oldPassword">
         </div>
         <div class="password">
             <label>New password</label>

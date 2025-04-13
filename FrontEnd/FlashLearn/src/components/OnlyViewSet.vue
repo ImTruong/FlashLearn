@@ -24,41 +24,9 @@ const closeForm = () => {
 
 const fetchSetById = async () => {
     try {
-        // const token = localStorage.getItem('token');
-        // const response = await getSetByRequestId(requestId, token);
-        // existingSet.value = response.data;
-        existingSet.value = {
-          "id": 1,
-          "name": "Basic Vocabulary",
-          "description": "A set of common English words for beginners.",
-          "privacyStatus": "class",
-          "classId": 1,
-          "numberOfWords": 2,
-          "wordResponses": [
-            {
-              "id": 101,
-              "word": "test",
-              "ipa": "/test/",
-              "definition": "To be shown to be by test.",
-              "example": "This is a test sentence.",
-              "image": "http://res.cloudinary.com/dyzfar3j8/image/upload/v1740882608/kqdlyar52xncvpvix4sl.jpg",
-              "audio": "https://api.dictionaryapi.dev/media/pronunciations/en/test-uk.mp3"
-            },
-            {
-              "id": 102,
-              "word": "banana",
-              "ipa": "/bəˈnæn.ə/",
-              "definition": "A long curved fruit with a yellow skin and soft, sweet, white flesh inside.",
-              "example": "He ate a ripe banana for breakfast.",
-              "image": "https://carly.com.vn/media/1209/website-la-gi.jpg?anchor=center&mode=crop&rnd=132730833370930000",
-              "audio": "https://api.dictionaryapi.dev/media/pronunciations/en/web-us.mp3"
-            },
-          ],
-          userDetailResponse:{
-            "username": "admin",
-            "fullName": "John Doe",
-          }
-        };
+        const token = localStorage.getItem('token');
+        const response = await getSetByRequestId(requestId, token);
+        existingSet.value = response.data;
         setName.value = existingSet.value.name || '';
         rows.value = existingSet.value.wordResponses || [];
         selectedOption.value = existingSet.value.privacyStatus || ''; 

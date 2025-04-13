@@ -4,44 +4,11 @@
     import Header from '../components/Header.vue';
     import { useRouter } from 'vue-router';
 
-    //
-      const currentSet = ref({
-          "id": 1,
-          "name": "Basic Vocabulary",
-          "description": "A set of common English words for beginners.",
-          "privacyStatus": "class",
-          "classId": 1,
-          "numberOfWords": 2,
-          "wordResponses": [
-            {
-              "id": 101,
-              "word": "test",
-              "ipa": "/test/",
-              "definition": "To be shown to be by test.",
-              "example": "This is a test sentence.",
-              "image": "http://res.cloudinary.com/dyzfar3j8/image/upload/v1740882608/kqdlyar52xncvpvix4sl.jpg",
-              "audio": "https://api.dictionaryapi.dev/media/pronunciations/en/test-uk.mp3"
-            },
-            {
-              "id": 102,
-              "word": "web",
-              "ipa": "/wɛb/",
-              "definition": "The World Wide Web.",
-              "example": "im coding a web",
-              "image": "https://carly.com.vn/media/1209/website-la-gi.jpg?anchor=center&mode=crop&rnd=132730833370930000",
-              "audio": "https://api.dictionaryapi.dev/media/pronunciations/en/web-us.mp3"
-            },
-          ],
-          userDetailResponse:{
-            "username": "admin",
-            "fullName": "John Doe",
-          }
-        });
-    //
+
 
     const store = useStore();
     const router = useRouter();
-    // const currentSet = ref(null); 
+    const currentSet = computed(() => store.state.setModule.currentSet);
     const totalCards = computed(() => currentSet.value ? currentSet.value.wordResponses.length : 0);
     const currentCard = ref(0)
     const userInput = ref("");
@@ -70,14 +37,13 @@
     });
 
     const handleKeydown = (event) => {
-    if (/^[a-zA-Z ]$/.test(event.key)) {
-        userInput.value += event.key; // Thêm ký tự vừa nhập
-    } else if (event.key === "Backspace") {
-        userInput.value = userInput.value.slice(0, -1);
-    } else if (event.key === "Enter") {
-        console.log(userInput.value)
-        checkAnswer();
-    }
+      if (/^[a-zA-Z ]$/.test(event.key) && userInput.value.length < currentSet.value.wordResponses[currentCard.value].word.length) {
+          userInput.value += event.key; // Thêm ký tự vừa nhập
+      } else if (event.key === "Backspace") {
+          userInput.value = userInput.value.slice(0, -1);
+      } else if (event.key === "Enter") {
+          checkAnswer();
+      }
     };
     // Kiểm tra đáp án
     const checkAnswer = () => {

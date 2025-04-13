@@ -28,8 +28,7 @@
     watch(() => [props.recentSets, props.ownerSets, props.publicSets], () => {
     setsData.value = [...props.recentSets, ...props.ownerSets, ...props.publicSets];
     });
-    // let classesData = computed(() => store.getters.getClasses);
-    const classesData = ref([]);
+
     const isEditMode = ref(false);
     const existingSet = ref(null);
     const menuOpen = ref(false);    
@@ -38,8 +37,6 @@
     const searchQuery = ref("")
     const Overlay_background = ref("false");
     const showSearch = ref(false)
-    const classItems = ref([])
-    const setItems = ref([])
     const searchItem = ref("")
     const newItem = ref(false);
     const classTable = ref(false)
@@ -59,17 +56,9 @@
         newItem.value = !newItem;
     }
     const performSearch = (query) => {
-        if (query) {
-            classItems.value = classesData.value.filter(classData => 
-                classData.className.toLowerCase().includes(query.toLowerCase())
-            );
-            setItems.value = setsData.value.filter(setData => 
-                setData.name.toLowerCase().includes(query.toLowerCase())
-            );
-        }
         showSearch.value = true;
         Overlay_background.value = true;
-        searchItem.value = query; // Lưu giá trị tìm kiếm
+        searchItem.value = query;
     };
 
     const showSetTable = (editMode = false) => {
@@ -78,15 +67,12 @@
     };
 
     const handleSet = (data) => {
-        existingSet.value = data; // Gán dữ liệu cho set hiện tại nếu cần
+        existingSet.value = data;
     }
     watch(menuOpen, (newValue) => {
         if (!newValue) {
         showNotifications.value = false; 
         }
-    });
-    onMounted(async () => {
-        classesData.value = await store.dispatch('classModule/fetchClassData');
     });
 </script>
 

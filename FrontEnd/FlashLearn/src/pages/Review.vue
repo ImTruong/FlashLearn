@@ -4,6 +4,7 @@
     import Header from "../components/Header.vue";
     import { useRouter } from 'vue-router'; 
     import { userRemindWord } from '@/apis/wordApi';
+    import {createStudySession} from "@/apis/studyApi.js";
 
     const currentCard = ref(0);
     const isFlipped = ref(false);
@@ -19,14 +20,10 @@
             const response = await userRemindWord(token);
             totalCards.value = response;
         } catch (error) {
-            if (error.response) {
-                alert(`${error.response.data.message || 'An error occurred'}`);
-            } else {
-                alert(`Network or Axios error: ${error.message}`);
-            }
-        } finally {
-            isLoading.value = false; // Đặt isLoading thành false sau khi gọi API xong
+            alert(error);
         }
+      isLoading.value = false;
+
     };
 
     const cardStatus = computed(() => `${currentCard.value + 1}/${totalCards.value.length}`);
@@ -49,34 +46,20 @@
     }
 
     const submitRating = async (rating) => {
-        try {
-            // const currentWord = totalCards.value[currentCard.value];
-            // const studySessionData = {
-            //     wordId: currentWord.id,
-            //     difficulty: rating
-            // };
-            // console.log(studySessionData);
-            // const token = localStorage.getItem('token'); 
-            // const config = {
-            //     headers: {
-            //         Authorization: `Bearer ${token}` // Thêm token vào header
-            //     }
-            // }
-            // // Make API request to log study session
-            // const response = await axios.post('/study', studySessionData, config); // Replace with your actual API endpoint
-            // console.log('Study session created:', studySessionData);
-            // if (response.data.message) {
-            //     console.log(response.data.message);
-            // }
-            nextCard();
-        } catch (error) {
-            if (error.response) {
-                alert(`${error.response.data.message || 'An error occurred'}`);
-            } else {
-                alert(`Network or Axios error: ${error.message}`);
-            }
-        }
+      try{
+        const currentWord = totalCards.value[currentCard.value];
+        const studySessionData = {
+            wordId: currentWord.id,
+            difficulty: rating
+        };
+        const token = localStorage.getItem('token');
+        await createStudySession(token, studySessionData);
+      }catch (error) {
+        console.error("Error creating study session:", error);
+      }
+      nextCard();
     };
+
     const handleComplete = () => {
         router.push('/');
     };

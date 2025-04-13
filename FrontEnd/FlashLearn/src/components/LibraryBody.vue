@@ -2,40 +2,29 @@
     import ClassModal from '@/components/ClassModal.vue'
     import JoinBox from './JoinBox.vue';
     import SetBox from "./SetBox.vue"
-    import {ref, computed, onMounted} from "vue"
-    import { defineProps} from 'vue';
     import ClassTable from './ClassTable.vue';
-    import { useStore } from 'vuex';
+    import { checkClassBelonging } from "@/apis/classApi.js";
+    import { ref } from "vue";
+
 
     const classModalMode = ref(false);
     const classTableMode = ref(false);
     const joinMode = ref(false);
-    const store = useStore();
-    const myClasses = computed(() => store.getters["classModule/getClasses"]);
-    const myClassIds = ref([]);
-
-
-    const {sets, classes} = defineProps(['sets','classes']);
-
     const activeTab = ref("Flashcard sets");
     const selectedClassItem = ref("");
     const isMember = ref(false);
-
+    const {sets, classes} = defineProps(['sets','classes']);
     
-    const selectClass = (classItem) => {
+    const selectClass = async (classItem) => {
         selectedClassItem.value = classItem;
         localStorage.setItem('classId', selectedClassItem.value.classId);
         localStorage.setItem('className', selectedClassItem.value.className);
-        myClassIds.value = myClasses.value.map(item => item.classId);
-        isMember.value = myClassIds.value.includes(selectedClassItem.value.classId);
-        joinMode.value = !isMember.value;
-    }
-
-    const showClassTable = (classItem) => {
-        if(isMember){
-            classTableMode.value = true;
-            localStorage.setItem('libraryMode', activeTab.value);
-            selectClass(classItem);
+        try{
+          isMember.value = await checkClassBelonging(selectedClassItem.value.classId, localStorage.getItem('token'));
+          joinMode.value = !isMember.value;
+        }catch(err){
+          console.error(err);
+          alert(err)
         }
     }
 
@@ -45,14 +34,10 @@
             selectClass(classItem);
         }
     }
-    
-
-    
 
     function closeOverlay() {
         emit('close');
         isMember.value = false;
-        window.location.reload();
     }
 
     const switchTab = () =>{
@@ -82,7 +67,7 @@
             </div>
         </div>
         <div class="class-list"  v-if="activeTab == 'Classes'">
-            <div v-for="classItem in classes" :key="classItem.id" class="class-card" @click="showClassModal(classItem)">
+            <div v-for="classItem in classes" :key="classItem.classId" class="class-card" @click="showClassModal(classItem)">
                 <img src="../assets/class.svg" alt="Icon" class="class-icon">
                 <div class="class-info">
                     <h3>{{ classItem.className }}</h3>
@@ -174,7 +159,7 @@
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        
+        cursor: pointer;
     }
 
     .class-card:hover{
@@ -217,7 +202,6 @@
     }
     
     .card-wrapper {
-        /* flex: 1 1 calc(33.33% - 20px); */
         min-width: 250px;
     }
 </style>

@@ -27,24 +27,24 @@
   const updateProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await updateUserInfo(user, token);
-      alert(response);
+      const response = await updateUserInfo(user.value, token);
+      alert(response)
       await showCurrentUser();
     } catch (error) {
-      alert(error);
+        alert(error);
     }
   };
 
 
-  // Phương thức hiển thị form ChangePassword
-const showChangePasswordForm = () => {
-  isChangePasswordVisible.value = true;
-};
+    // Phương thức hiển thị form ChangePassword
+  const showChangePasswordForm = () => {
+    isChangePasswordVisible.value = true;
+  };
 
-// Phương thức xử lý khi đóng form ChangePassword
-const handleCloseChangePassword = () => {
-  isChangePasswordVisible.value = false;
-};
+  // Phương thức xử lý khi đóng form ChangePassword
+  const handleCloseChangePassword = () => {
+    isChangePasswordVisible.value = false;
+  };
 
 
 </script>

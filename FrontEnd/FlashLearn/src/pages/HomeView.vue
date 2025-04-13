@@ -5,24 +5,15 @@
     import { useRouter } from "vue-router"; 
     import { useStore } from "vuex";
     import { getCurrentUser } from "@/apis/userApi";
-    import { getRecentSet, getAllPublicSet } from "@/apis/setApi";
+    import {getRecentSet, getAllPublicSet, getLibrarySet} from "@/apis/setApi";
     
     const router = useRouter();
-    const store = useStore();
-    const sets = computed(() => store.getters['setModule/getSets']);
-    const token = localStorage.getItem('token');
-    const displayedSets = ref([]);
+    const sets = ref([]);
     const displayPublicSets = ref([]);
     const displayRecentSets = ref([]);
     const recentSets = ref([]);
-    const publicSets = ref([])
+    const publicSets = ref([]);
 
-    onMounted(() => {
-        store.dispatch('setModule/fetchLibrarySets').then(() => {
-            displayedSets.value = sets.value.slice(0, 3); 
-        });
-        fetchRecentSet();
-    });
     const showAllSetsRecent = () => {
         displayRecentSets.value = recentSets.value;
     };
@@ -30,12 +21,12 @@
     const showAllCommunity = () => {
         displayPublicSets.value = publicSets.value;
     }
-    const fetchUserInfo = async () => {
-        const user = await getCurrentUser();
+    const fetchUserInfo = async (token) => {
+        const user = await getCurrentUser(token);
         localStorage.setItem('user', JSON.stringify(user));                          
     };
 
-    const fetchRecentSet = async () => {
+    const fetchRecentSet = async (token) => {
         try {
             const response = await getRecentSet(token);
             recentSets.value = response;
@@ -44,7 +35,7 @@
             alert(error)
         }
     }
-    const fetchPublicSet = async () => {
+    const fetchPublicSet = async (token) => {
         try {
             const response = await getAllPublicSet(token);
             publicSets.value = response;
@@ -53,10 +44,12 @@
             alert(error)
         }
     }
-    onMounted(() => {
-        fetchUserInfo();
-        fetchRecentSet();
-        fetchPublicSet();
+    onMounted(async () => {
+        const token = localStorage.getItem('token');
+        sets.value = await getLibrarySet(token);
+        await fetchUserInfo(token);
+        await fetchRecentSet(token);
+        await fetchPublicSet(token);
     });
     const goToStudy = () => {
         router.push('/review');
@@ -97,7 +90,7 @@
         </h1>
         <div class="set-container">
             <SetBox 
-                v-for="set in displayedSets" 
+                v-for="set in sets"
                 :key="set.id" 
                 :set="set" />
         </div>
@@ -107,7 +100,7 @@
         </h1>
         <div class="set-container">
             <SetBox 
-                v-for="set in displayPublicSets" 
+                v-for="set in displayPublicSets"
                 :key="set.id" 
                 :set="set" />
         </div>

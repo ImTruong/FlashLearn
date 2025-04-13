@@ -47,23 +47,22 @@
         };
         try {
             const response = await saveSetInfo(payload, token, props.isEditMode);
+            alert(response.message);
             if (props.isEditMode) {
-                emit('update', response);
+                emit('update', response.data);
             } else {
-                emit('save', response);
+                emit('save', response.data);
             }
         } catch (error) {
             alert(error);
-            selectedOption.value = props.existingSet.privacyStatus;
+            console.log(error);
         }
     };
 
     const addNewWord = (newWord) => {
-        if (rows.value[0].word === '') {
-            rows.value[0] = newWord;
-        } else {
+
             rows.value.push(newWord);
-        }
+
     };
 
     const removeRow = async () => {
@@ -73,11 +72,10 @@
                     const token = localStorage.getItem('token');
                     const response = await deleteWord(wordId, token);
                     rows.value = rows.value.filter(row => row.id !== wordId);
-                    if (response.message) {
-                        alert(response.message);
-                    }
+                    alert(response.message);
                 } catch (error) {
-                    throw new Error(error);
+                    alert(error);
+                    console.log(error);
                 }
             }
             selectedWords.value = [];
@@ -132,10 +130,10 @@
         showModifyCardModal.value = false;
     };
 
-    const handlesaveSetInfoInfo = () => {
+    const handleSaveSetInfoInfo = () => {
         if (setName.value.trim()) {
             if (selectedOption.value === 'CLASS' && !classId) {
-                console.log('Please enter classname');
+                alert('Please enter classname');
                 return;
             }
             saveSetInfoInfo();
@@ -302,7 +300,7 @@
             <button @click="openModifyCardModal" class="icon-button">
                 <img src="../assets/add-word.svg" alt="" class="icon">
             </button>
-            <button @click="handlesaveSetInfoInfo" class="icon-button">
+            <button @click="handleSaveSetInfoInfo" class="icon-button">
                 <img src="../assets/save.svg" alt="" class="icon">
             </button>
         </div>

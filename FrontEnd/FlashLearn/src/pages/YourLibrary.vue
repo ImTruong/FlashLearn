@@ -1,26 +1,29 @@
 <script setup>
-import Header from '@/components/Header.vue';
-import LibraryBody from "@/components/LibraryBody.vue";
-import { computed, onMounted, ref } from "vue";
-import { useStore } from 'vuex';
+  import Header from '@/components/Header.vue';
+  import LibraryBody from "@/components/LibraryBody.vue";
+  import { getLibrarySet } from "@/apis/setApi.js";
+  import { getCurrentUserClasses } from "@/apis/classApi.js";
+  import {onMounted} from "vue";
+  import { ref } from "vue";
 
-const store = useStore();
-const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token');
+  const classes = ref(null);
+  const sets = ref(null);
 
-// Ensure computed properties are reactive
-const classes = computed(() => store.getters['classModule/getClasses'].slice().reverse());
-const sets = computed(() => store.getters['setModule/getSets']);
-
-onMounted(async () => {
+  onMounted(async () => {
     try {
-        await Promise.all([
-            store.dispatch('setModule/fetchLibrarySets', token),
-            store.dispatch('classModule/fetchClassData', token),
-        ]);
+      const [setsData, classesData] = await Promise.all([
+        getLibrarySet(token),
+        getCurrentUserClasses(token),
+      ]);
+
+      sets.value = setsData;
+      classes.value = classesData;
     } catch (error) {
-        console.error("Error fetching data:", error);
+      console.error("Error fetching data:", error);
     }
-});
+  });
+
 </script>
 
 <template>
@@ -37,12 +40,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-main {
-    padding: 100px;
-}
+  main {
+      padding: 100px;
+  }
 
-h2 {
-    font-weight: bold;
-    margin-bottom: 30px;
-}
+  h2 {
+      font-weight: bold;
+      margin-bottom: 30px;
+  }
 </style>

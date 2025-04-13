@@ -1,34 +1,33 @@
 <script setup>
-import router from '@/router/route';
-import axios from 'axios';
-import { reactive } from 'vue';
-import { register } from '@/apis/userApi';
+  import router from '@/router/route';
+  import axios from 'axios';
+  import { reactive } from 'vue';
+  import { register } from '@/apis/userApi';
 
-const registerRequest = reactive({
-  fullname: '',
-  username: '',
-  password: '',
-  email: '',
-  country: '',
-  message: ''
-});
+  const registerRequest = reactive({
+    fullname: '',
+    username: '',
+    password: '',
+    email: '',
+    country: '',
+    message: ''
+  });
 
-// Hàm đăng ký người dùng
-const registerUser = async () => {
-  if (!registerRequest.fullname || !registerRequest.username || !registerRequest.password || !registerRequest.email || !registerRequest.country) {
-    registerRequest.message = 'Please fill in all the fields.';
-    alert(registerRequest.message);
-    return;
-  }
-  try {
-    // Gửi yêu cầu POST đến API
-    const response = await register(registerRequest);
-    alert(response);
-    router.push('/login');
-  } catch (error) {
-    alert(error);
-  }
-};
+  const registerUser = async () => {
+    if (!registerRequest.fullname || !registerRequest.username || !registerRequest.password || !registerRequest.email || !registerRequest.country) {
+      registerRequest.message = 'Please fill in all the fields.';
+      alert(registerRequest.message);
+      return;
+    }
+    try {
+      // Gửi yêu cầu POST đến API
+      const response = await register(registerRequest);
+      alert(response);
+      router.push('/login');
+    } catch (error) {
+      alert(error);
+    }
+  };
 </script>
 
 <template>

@@ -30,7 +30,7 @@
         try {
             if (props.isEditMode) {
                 const response = await updateClassName(payload, token);
-                alert(response.message);
+                alert(response);
                 localStorage.setItem('classId', classId.value);
                 localStorage.setItem('className', className.value);
             } else {
@@ -58,7 +58,7 @@
                     alert('Không tìm thấy từ với ID:', userId);
                     continue;
                 }
-                await deleteMember(userId, classId, token);
+                alert(await deleteMember(userId, classId, token));
                 memberList.value = memberList.value.filter(row => row.userId !== userId);
                 if (memberList.value.length == 0) {
                     emit('close');
@@ -119,7 +119,7 @@
         try {
             const token = localStorage.getItem('token');
             const response = await getMemberList(classId.value, token);
-            memberList.value = response;
+            memberList.value = response.memberList;
         } catch (error) {
             alert(error);
         }
@@ -138,9 +138,7 @@
             role: user.role,
         };
         try {
-            if (user.role !== "ADMIN") 
-                throw new Error("You can't change the role");
-            await updateMemberRole(payload, token);
+            alert(await updateMemberRole(payload, token));
         } catch (error) {
             user.role = user.role == "ADMIN" ? "MEMBER" : "ADMIN";
             alert(error);
@@ -153,7 +151,6 @@
             className.value = localStorage.getItem('className');
             await getMember();
             const currentUser = await getCurrentUser(token);
-            console.log(memberList.value)
             for (let i = 0; i < memberList.value.length; i++) {
                 if (memberList.value[i].role == "ADMIN" && memberList.value[i].userName == currentUser.username) {
                     isDisplayRoleSetting.value = true;

@@ -14,6 +14,7 @@
   const setTable = ref(false); 
   const existingSet = ref({});
   const isEditMode = ref(false);
+  const token = localStorage.getItem("token");
 
   const store = useStore();
 
@@ -59,7 +60,7 @@
 
   const handleDeleteSet = async () => {
     try {
-      await deleteSet(set.id);
+      await deleteSet(set.id, token);
       alert("Set deleted successfully!");
       emit("delete", set.id);
     } catch (error) {
@@ -86,7 +87,7 @@
         <div class="icon-container" @click.stop="editSet" >
           <img src="../assets/edit.svg" alt="Edit">
         </div>
-        <div class="icon-container" @click.stop="deleteSet" >
+        <div class="icon-container" @click.stop="handleDeleteSet" >
           <img src="../assets/delete.svg" alt="Delete">
         </div>
       </div>

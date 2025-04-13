@@ -12,13 +12,12 @@
       alert("Username và password không được để trống!");
       return;
     }
-    try{
+    try {
       const token = await login(username.value, password.value);
       localStorage.setItem('token', token);
       router.push('/');
-    }
-    catch(e){
-        alert(e);
+    } catch (e) {
+      alert(e.message);
     }
   };
 </script>

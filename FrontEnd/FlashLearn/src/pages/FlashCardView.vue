@@ -2,49 +2,16 @@
     import { ref, computed, onMounted, watch } from 'vue';
     import { useRouter } from 'vue-router';
     import { useStore } from 'vuex';
-    import axios from 'axios';
     import Header from "../components/Header.vue";
+    import {createStudySession} from "@/apis/studyApi.js";
 
-    //
-    const currentSet = ref({
-          "id": 1,
-          "name": "Basic Vocabulary",
-          "description": "A set of common English words for beginners.",
-          "privacyStatus": "class",
-          "classId": 1,
-          "numberOfWords": 2,
-          "wordResponses": [
-            {
-              "id": 101,
-              "word": "test",
-              "ipa": "/test/",
-              "definition": "To be shown to be by test.",
-              "example": "This is a test sentence.",
-              "image": "http://res.cloudinary.com/dyzfar3j8/image/upload/v1740882608/kqdlyar52xncvpvix4sl.jpg",
-              "audio": "https://api.dictionaryapi.dev/media/pronunciations/en/test-uk.mp3"
-            },
-            {
-              "id": 102,
-              "word": "web",
-              "ipa": "/wɛb/",
-              "definition": "The World Wide Web.",
-              "example": "im coding a web",
-              "image": "https://carly.com.vn/media/1209/website-la-gi.jpg?anchor=center&mode=crop&rnd=132730833370930000",
-              "audio": "https://api.dictionaryapi.dev/media/pronunciations/en/web-us.mp3"
-            },
-          ],
-          userDetailResponse:{
-            "username": "admin",
-            "fullName": "John Doe",
-          }
-        });
-        //
+
 
     const store = useStore();
     const router = useRouter();
     const currentCard = ref(0);
     const isFlipped = ref(false);
-    // const currentSet = computed(() => store.state.currentSet); 
+    const currentSet = computed(() => store.state.setModule.currentSet);
     const totalCards = computed(() => currentSet.value ? currentSet.value.wordResponses.length : 0);    
     const cardStatus = computed(() => `${currentCard.value + 1}/${totalCards.value}`);
     
@@ -70,34 +37,21 @@
     }
 
     const submitRating = async (rating) => {
-        try {
-            // const currentWord = currentSet.value.wordResponses[currentCard.value];
-            // const studySessionData = {
-            //     wordId: currentWord.id,
-            //     difficulty: rating
-            // };
-            // console.log(studySessionData);
-            // const token = localStorage.getItem('token'); 
-            // const config = {
-            // headers: {
-            //     Authorization: `Bearer ${token}` // Thêm token vào header
-            // }
-            // }
-            // // Make API request to log study session
-            // const response = await axios.post('/study', studySessionData, config); // Replace with your actual API endpoint
-            // console.log('Study session created:', studySessionData);
-            // if (response.data.message) {
-            //     console.log(response.data.message);
-            // }
-            nextCard();
-        } catch (error) {
-            if (error.response) {
-                alert(`${error.response.data.message || 'An error occurred'}`);
-            } else {
-                alert(`Network or Axios error: ${error.message}`);
-            }
-        }
+      try{
+        const currentWord = currentSet.value.wordResponses[currentCard.value];
+        const studySessionData = {
+          wordId: currentWord.id,
+          difficulty: rating
+        };
+        const token = localStorage.getItem('token');
+        await createStudySession(token, studySessionData);
+      }catch (error) {
+        console.error("Error creating study session:", error);
+      }
+      nextCard();
     };
+
+
     
 </script>
 
