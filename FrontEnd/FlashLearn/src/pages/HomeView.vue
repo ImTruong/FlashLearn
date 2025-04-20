@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, computed, onMounted } from "vue";
+    import { ref, computed, onMounted, onUnmounted } from "vue";
     import Header from "@/components/Header.vue";
     import SetBox from "@/components/SetBox.vue";
     import { useRouter } from "vue-router"; 
@@ -44,12 +44,25 @@
             alert(error)
         }
     }
-    onMounted(async () => {
-        const token = localStorage.getItem('token');
-        sets.value = await getLibrarySet(token);
-        await fetchUserInfo(token);
-        await fetchRecentSet(token);
-        await fetchPublicSet(token);
+    let intervalId = null; // lưu ID của interval
+
+    const fetchAllData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      sets.value = await getLibrarySet(token);
+      await fetchUserInfo(token);
+      await fetchRecentSet(token);
+      await fetchPublicSet(token);
+    };
+
+    onMounted(() => {
+      fetchAllData(); // fetch ngay khi mount
+      intervalId = setInterval(fetchAllData, 2000); // fetch mỗi 3s
+    });
+
+    onUnmounted(() => {
+      clearInterval(intervalId); // dọn dẹp
     });
     const goToStudy = () => {
         router.push('/review');

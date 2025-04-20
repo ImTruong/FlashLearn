@@ -225,7 +225,7 @@ export const deleteMember = async (userId, classId, token) => {
     }catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
             console.log("Error message:", error.response.data.message);
-            return error.response.data.message;
+            throw error.response.data.message;
         } else {
             console.log("Unexpected error:", error);
             throw new Error("Something went wrong");
@@ -247,7 +247,7 @@ export const updateMemberRole = async (payload, token) => {
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
             console.log("Error message:", error.response.data.message);
-            return error.response.data.message;
+            throw error.response.data.message;
         } else {
             console.log("Unexpected error:", error);
             throw new Error("Something went wrong");
@@ -287,7 +287,7 @@ export const leaveClass = async (classId, token) => {
                 Authorization: `Bearer ${token}`,
             },
         });
-        return response.data;
+        return response.data.message;
     }catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
             console.log("Error message:", error.response.data.message);

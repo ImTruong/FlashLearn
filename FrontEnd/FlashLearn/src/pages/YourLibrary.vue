@@ -3,14 +3,16 @@
   import LibraryBody from "@/components/LibraryBody.vue";
   import { getLibrarySet } from "@/apis/setApi.js";
   import { getCurrentUserClasses } from "@/apis/classApi.js";
-  import {onMounted} from "vue";
+  import {onMounted, onUnmounted} from "vue";
   import { ref } from "vue";
 
   const token = localStorage.getItem('token');
   const classes = ref(null);
   const sets = ref(null);
 
-  onMounted(async () => {
+  let intervalId = null;
+
+  const fetchData = async () => {
     try {
       const [setsData, classesData] = await Promise.all([
         getLibrarySet(token),
@@ -22,6 +24,15 @@
     } catch (error) {
       console.error("Error fetching data:", error);
     }
+  };
+
+  onMounted(() => {
+    fetchData(); // fetch ban đầu
+    intervalId = setInterval(fetchData, 3000); // fetch lại mỗi 3s
+  });
+
+  onUnmounted(() => {
+    clearInterval(intervalId); // dọn dẹp interval
   });
 
 </script>

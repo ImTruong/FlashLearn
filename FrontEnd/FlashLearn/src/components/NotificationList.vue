@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from "vue-router";
 import NotificationItem from './NotificationItem.vue';
 import InvitationBox from './InvitationBox.vue';
@@ -14,23 +14,29 @@ const router = useRouter();
 const setRequest = ref(false);
 const classRequest = ref(false);
 
-const fetchNotificationsData = async () => {
-    try {
-        const token = localStorage.getItem("token");
-        const response = await fetchNotifications(token);
-        notifications.value = response.data;
-    } catch (error) {
-        if (error.response) {
-            alert('Error:', error.response.data.message);
-        } else {
-            alert('Network or Axios error:', error.message);
-        }
-    }
+let intervalId = null; // để lưu id của setInterval
 
+const fetchNotificationsData = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetchNotifications(token);
+    notifications.value = response.data;
+  } catch (error) {
+    if (error.response) {
+      alert('Error:', error.response.data.message);
+    } else {
+      alert('Network or Axios error:', error.message);
+    }
+  }
 };
 
 onMounted(() => {
-    fetchNotificationsData();
+  fetchNotificationsData();
+  intervalId = setInterval(fetchNotificationsData, 3000); // gọi mỗi 3s
+});
+
+onUnmounted(() => {
+  clearInterval(intervalId); // dọn dẹp khi component bị huỷ
 });
 
 const markAsRead = async (notificationId) => {

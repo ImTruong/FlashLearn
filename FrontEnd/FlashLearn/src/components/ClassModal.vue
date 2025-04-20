@@ -49,7 +49,7 @@
         const token = localStorage.getItem('token');
         try {
             const response = await leaveClass(classId, token);
-            alert(response.message);
+            alert(response);
             emit("close");
         } catch (error) {
             console.log(error)
