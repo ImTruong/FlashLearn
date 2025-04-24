@@ -472,3 +472,27 @@ export const handleReject = async (apiUrl, token) => {
         }
     }
 };
+
+export const getAllClasses = async (token,name,page,size) => {
+    try {
+        const response = await axios.get('/admin/class', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            params: {
+                name: name,
+                page: page,
+                size: size
+            }
+        });
+        return response.data.data;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            throw error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+}

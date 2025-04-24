@@ -13,14 +13,16 @@ public interface ClassService {
     ClassMemberListReponse createClass(CreateClassRequest createClassRequest);
 
     ClassEntity getClassById(Long id);
+
     boolean updateClassName(Long classId, String name);
 
     ClassInformationResponse getClassInformation(Long classId);
 
-    List<ClassInformationResponse> getAllCurrentUserClasses();
+    List<ClassInformationResponse> getAllCurrentUserClasses(int page, int size);
 
-    List<ClassInformationResponse> findClassByName(String name);
+    List<ClassInformationResponse> findClassByName(String name, int page, int size);
 
     boolean deleteClassByEntity(ClassEntity classEntity);
 
+    boolean deleteClassById(Long classId);
 }

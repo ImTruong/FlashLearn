@@ -27,15 +27,18 @@ public class ClassController {
     }
 
     @GetMapping
-    public ResponseEntity<?> findClassByName(@RequestParam @NotNull(message = "Class name is required") String name) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.findClassByName(name));
+    public ResponseEntity<?> findClassByName(@RequestParam @NotNull(message = "Class name is required") String name,
+                                             @RequestParam (required = true) int page,
+                                             @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.findClassByName(name, page, size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 
     @GetMapping("/user")
-    public ResponseEntity<?> getAllCurrentUserClasses() {
-        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.getAllCurrentUserClasses());
+    public ResponseEntity<?> getAllCurrentUserClasses(@RequestParam (required = true) int page,
+                                                       @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.getAllCurrentUserClasses(page, size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

@@ -1,5 +1,5 @@
 <script setup>
-    import { onMounted, defineProps, defineEmits, ref, watch } from 'vue';
+import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue';
     import SetBox from './SetBox.vue';
     import OverlayBackground from './OverlayBackground.vue';
     import ClassTable from './ClassTable.vue';
@@ -57,16 +57,6 @@
         }
     };
 
-    const fetchSets = async () => {
-        const token = localStorage.getItem('token');
-        try {
-            const response = await getSetByClassId(classId, token);
-            sets.value = response;
-        } catch (error) {
-            alert(error);
-        }
-    };
-
     const handleSet = (data) => {
         existingSet.value = data;
     };
@@ -78,8 +68,27 @@
         existingClass.value = classItem;
     };
 
+    let intervalId;
+
+
+
+    const fetchSets = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const response = await getSetByClassId(classId, token);
+        sets.value = response;
+      } catch (error) {
+        alert(error);
+      }
+    };
+
     onMounted(() => {
-        fetchSets();
+      fetchSets();
+      intervalId = setInterval(fetchSets, 2000);
+    });
+
+    onUnmounted(() => {
+      clearInterval(intervalId);
     });
 </script>
 

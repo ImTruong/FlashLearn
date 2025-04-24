@@ -1,9 +1,7 @@
 package com.education.flashEng.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -67,4 +65,8 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "userEntity")
     private List<ClassJoinRequestEntity> classJoinRequestEntityList;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")//, nullable = false)
+    private RoleEntity roleEntity;
 }

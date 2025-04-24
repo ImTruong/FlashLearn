@@ -25,26 +25,32 @@ public class StudySessionController {
     }
 
     @GetMapping("/time")
-    public ResponseEntity<?> getStudyStatisticsByTime() {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByTime());
+    public ResponseEntity<?> getStudyStatisticsByTime(@RequestParam (required = true) int page,
+                                                      @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByTime(page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/word")
-    public ResponseEntity<?> getStudyStatisticsByWord() {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByWord());
+    public ResponseEntity<?> getStudyStatisticsByWord(@RequestParam (required = true) int page,
+                                                      @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByWord(page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/time/{time}")
-    public ResponseEntity<?> getStudyStatisticsBySpecificTime(@PathVariable LocalDate time) {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStaticBySpecificTime(time));
+    public ResponseEntity<?> getStudyStatisticsBySpecificTime(@PathVariable LocalDate time,
+                                                              @RequestParam (required = true) int page,
+                                                              @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStaticBySpecificTime(time,page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/word/{wordId}")
-    public ResponseEntity<?> getStudyStatisticsBySpecificWord(@PathVariable Long wordId) {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStaticBySpecificWord(wordId));
+    public ResponseEntity<?> getStudyStatisticsBySpecificWord(@PathVariable Long wordId,
+                                                              @RequestParam (required = true) int page,
+                                                              @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStaticBySpecificWord(wordId,page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

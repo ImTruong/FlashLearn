@@ -14,13 +14,13 @@ import java.util.List;
 public interface StudySessionService {
     boolean createStudySession(StudySessionRequest studySessionRequest);
 
-    List<StatisticByTimeResponse> getUsersStudyStatisticByTime();
+    List<StatisticByTimeResponse> getUsersStudyStatisticByTime(int page, int size);
 
-    List<StatisticByWordResponse> getUsersStudyStatisticByWord();
+    List<StatisticByWordResponse> getUsersStudyStatisticByWord(int page, int size);
 
-    List<StatisticBySpecificTimeResponse> getUsersStudyStaticBySpecificTime(LocalDate time);
+    List<StatisticBySpecificTimeResponse> getUsersStudyStaticBySpecificTime(LocalDate time, int page, int size);
 
-    List<StatisticBySpecificWordResponse> getUsersStudyStaticBySpecificWord(Long wordId);
+    List<StatisticBySpecificWordResponse> getUsersStudyStaticBySpecificWord(Long wordId, int page, int size);
 
     LocalDateTime getReminderTimeBasedOnLevel(StudySessionEntity studySessionEntity, LocalDateTime startTime);
 }

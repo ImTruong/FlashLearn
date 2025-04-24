@@ -13,11 +13,13 @@
     const isLoading = ref(true);
     const router = useRouter()
     const token = localStorage.getItem('token');
+    const page = ref(0);
+    const size = ref(1000);
 
 
     const fetchReviewCard = async () => {
         try {
-            const response = await userRemindWord(token);
+            const response = await userRemindWord(token,page.value,size.value);
             totalCards.value = response;
         } catch (error) {
             alert(error);

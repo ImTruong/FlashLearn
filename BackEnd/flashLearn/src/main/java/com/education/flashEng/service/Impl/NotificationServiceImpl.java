@@ -228,11 +228,11 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponse> getAllCurrentUserNotifications() {
+    public List<NotificationResponse> getAllCurrentUserNotifications(int page, int size) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<NotificationEntity> notificationEntityList = user.getNotificationsEntityList();
 
-        return notificationEntityList.stream()
+        List<NotificationResponse> notifications = notificationEntityList.stream()
                 .filter(notificationEntity -> notificationEntity.getReminderTime() == null || notificationEntity.getReminderTime().isBefore(LocalDateTime.now()))
                 .map(notificationEntity -> {
 
@@ -242,7 +242,7 @@ public class NotificationServiceImpl implements NotificationService {
                             .id(notificationEntity.getId())
                             .createdAt(notificationEntity.getCreatedAt())
                             .isRead(notificationEntity.getIsRead());
-                    if (notificationEntity.getReminderTime()!=null)
+                    if (notificationEntity.getReminderTime() != null)
                         responseBuilder.createdAt(notificationEntity.getReminderTime());
 
                     if (notificationEntity.getNotificationMetaDataEntity() != null) {
@@ -257,6 +257,11 @@ public class NotificationServiceImpl implements NotificationService {
                 })
                 .sorted(Comparator.comparing(notificationResponse -> notificationResponse.getCreatedAt(), Comparator.reverseOrder()))
                 .toList();
+
+        // Apply paging
+        int start = Math.min(page * size, notifications.size());
+        int end = Math.min(start + size, notifications.size());
+        return notifications.subList(start, end);
     }
 
     @Transactional

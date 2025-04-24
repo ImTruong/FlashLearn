@@ -5,6 +5,7 @@ import com.education.flashEng.entity.ClassMemberEntity;
 import com.education.flashEng.entity.RoleClassEntity;
 import com.education.flashEng.entity.UserEntity;
 import com.education.flashEng.exception.EntityNotFoundWithIdException;
+import com.education.flashEng.exception.UserNotAuthenticatedException;
 import com.education.flashEng.payload.request.CreateClassRequest;
 import com.education.flashEng.payload.response.ClassInformationResponse;
 import com.education.flashEng.payload.response.ClassMemberListReponse;
@@ -102,7 +103,7 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public List<ClassInformationResponse> getAllCurrentUserClasses() {
+    public List<ClassInformationResponse> getAllCurrentUserClasses(int page,int size) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<ClassEntity> classEntityList = user.getClassMemberEntityList().stream()
                 .map(ClassMemberEntity::getClassEntity)
@@ -118,10 +119,11 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public List<ClassInformationResponse> findClassByName(String name) {
+    public List<ClassInformationResponse> findClassByName(String name, int page, int size) {
         name = "%" + name + "%";
         List<ClassEntity> classEntityList = classRepository.findAllByNameLike(name);
-        return classEntityList.stream()
+
+        List<ClassInformationResponse> result = classEntityList.stream()
                 .map(classEntity -> ClassInformationResponse.builder()
                         .classId(classEntity.getId())
                         .className(classEntity.getName())
@@ -129,6 +131,9 @@ public class ClassServiceImpl implements ClassService {
                         .numberOfSets(classEntity.getSetsEntityList().size())
                         .build())
                 .toList();
+        int start = Math.min(page * size, result.size());
+        int end = Math.min(start + size, result.size());
+        return result.subList(start, end);
     }
 
     @Transactional
@@ -156,5 +161,17 @@ public class ClassServiceImpl implements ClassService {
         classRepository.delete(classEntity);
         return true;
     }
+
+    @Override
+    public boolean deleteClassById(Long classId) {
+        UserEntity user = userService.getUserFromSecurityContext();
+        ClassEntity classEntity = classRepository.findById(classId).orElseThrow(() -> new EntityNotFoundWithIdException("Class", classId.toString()));
+        if (user.getRoleEntity().getName().equals("ADMIN") || classEntity.getClassMemberEntityList().stream().anyMatch(classMemberEntity -> classMemberEntity.getUserEntity().getId().equals(user.getId())&& classMemberEntity.getRoleClassEntity().getName().equals("ADMIN"))) {
+            return deleteClassByEntity(classEntity);
+        } else
+            throw new UserNotAuthenticatedException("You are not authorized to delete this class.");
+    }
+
+
 
 }

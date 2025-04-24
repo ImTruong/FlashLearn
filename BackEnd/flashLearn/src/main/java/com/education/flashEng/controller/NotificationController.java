@@ -19,8 +19,9 @@ public class NotificationController {
     private NotificationService notificationService;
 
     @GetMapping("/user")
-    public ResponseEntity<?> getAllCurrentUserNotifications() {
-        ApiResponse<List<NotificationResponse>> response = new ApiResponse<>(true,"All Notifications Fetched Successfully", notificationService.getAllCurrentUserNotifications());
+    public ResponseEntity<?> getAllCurrentUserNotifications(@RequestParam (required = true) int page,
+                                                            @RequestParam (required = true) int size) {
+        ApiResponse<List<NotificationResponse>> response = new ApiResponse<>(true,"All Notifications Fetched Successfully", notificationService.getAllCurrentUserNotifications(page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

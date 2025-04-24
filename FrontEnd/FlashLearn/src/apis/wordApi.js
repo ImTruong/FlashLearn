@@ -98,11 +98,15 @@ export const deleteWord = async (wordId, token) => {
 //     return "Word deleted successfully";
 };
 
-export const userRemindWord = async (token) => {
+export const userRemindWord = async (token,page,size) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                page: page,
+                size: size
             }
         };
         const response = await axios.get('/word/userCurrent', config);

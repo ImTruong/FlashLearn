@@ -81,7 +81,7 @@ public class SetServiceImpl implements SetService {
     }
 
     @Override
-    public List<SetResponse> getOwnPublicAndPrivateSet() {
+    public List<SetResponse> getOwnPublicAndPrivateSet(int page,int size) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<SetEntity> publicSetEntities = setRepository.findAllByPrivacyStatusAndUserEntityId(AccessModifierType.getKeyfromValue("Public"), user.getId());
         List<SetEntity> privateSetEntities = setRepository.findAllByPrivacyStatusAndUserEntityId(
@@ -103,6 +103,10 @@ public class SetServiceImpl implements SetService {
             s.setNumberOfWords((long) wordListResponses.size());
             setResponses.add(s);
         }
+        // Apply paging
+        int start = Math.min(page * size, setResponses.size());
+        int end = Math.min(start + size, setResponses.size());
+        setResponses = setResponses.subList(start, end);
         return setResponses;
     }
 
@@ -129,11 +133,11 @@ public class SetServiceImpl implements SetService {
     }
 
     @Override
-    public List<SetResponse> getSetByClassID(Long classID) {
+    public List<SetResponse> getSetByClassID(Long classID,int page,int size) {
         UserEntity user = userService.getUserFromSecurityContext();
         ClassEntity classEntity = classRepository.findById(classID)
                 .orElseThrow(() -> new EntityNotFoundWithIdException("ClassEntity", classID.toString()));
-        if(user.getClassMemberEntityList().stream().noneMatch(classMemberEntity -> classMemberEntity.getClassEntity().getId().equals(classID))){
+        if(user.getClassMemberEntityList().stream().noneMatch(classMemberEntity -> classMemberEntity.getClassEntity().getId().equals(classID)) && !user.getRoleEntity().getName().equals("ADMIN")){
             throw new IllegalArgumentException("You do not belong to the class " + classEntity.getName());
         }
         List<SetEntity> setEntities = setRepository.findAllByPrivacyStatusAndClassEntityId(
@@ -152,6 +156,10 @@ public class SetServiceImpl implements SetService {
             setResponse.setNumberOfWords((long) wordListResponses.size());
             setResponses.add(setResponse);
         }
+        // Apply paging
+        int start = Math.min(page * size, setResponses.size());
+        int end = Math.min(start + size, setResponses.size());
+        setResponses = setResponses.subList(start, end);
         return setResponses;
     }
 
@@ -201,22 +209,32 @@ public class SetServiceImpl implements SetService {
         UserEntity user = userService.getUserFromSecurityContext();
         SetEntity setEntity = setRepository.findById(setID).
                 orElseThrow(() -> new EntityNotFoundWithIdException("SetEntity", setID.toString()));
-        if(!setEntity.getUserEntity().getId().equals(user.getId())){
-            throw new IllegalArgumentException("You are not the owner of the set");
+        if (!user.getRoleEntity().getName().equals("ADMIN")) {
+            if(!setEntity.getUserEntity().getId().equals(user.getId())&&!setEntity.getPrivacyStatus().equals(String.valueOf(AccessModifierType.getKeyfromValue("Class")))) {
+                throw new IllegalArgumentException("You are not the owner of the set");
+            }
+            else {
+                boolean isAdmin = setEntity.getClassEntity().getClassMemberEntityList().stream()
+                        .anyMatch(classMemberEntity -> classMemberEntity.getUserEntity().getId().equals(user.getId()) &&
+                                "ADMIN".equals(classMemberEntity.getRoleClassEntity().getName()));
+                if (!isAdmin)
+                    throw new IllegalArgumentException("Only an admin can delete a set with class privacy.");
+            }
         }
+
         setRepository.delete(setEntity);
         return true;
     }
 
     @Override
-    public List<SetResponse> getRecentSet() {
+    public List<SetResponse> getRecentSet(int page, int size) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<StudySessionEntity> studySessionEntities = user.getStudySessionEntityList();
         studySessionEntities.sort(Comparator.comparing(StudySessionEntity::getCreatedAt).reversed());
         Set<SetEntity> processedSets = new LinkedHashSet<>();
         studySessionEntities.stream().map(StudySessionEntity::getWordEntity).forEach(wordEntity -> processedSets.add(wordEntity.getSetEntity()));
         List<SetResponse> setResponses = new ArrayList<>();
-        for(SetEntity setEntity : processedSets){
+        for (SetEntity setEntity : processedSets) {
             SetResponse s = new SetResponse();
             modelMapper.map(setEntity, s);
             s.setUserDetailResponse(
@@ -230,15 +248,21 @@ public class SetServiceImpl implements SetService {
             s.setWordResponses(wordListResponses);
             setResponses.add(s);
         }
-        return setResponses;
+
+        // Apply paging
+        int start = Math.min(page * size, setResponses.size());
+        int end = Math.min(start + size, setResponses.size());
+        return setResponses.subList(start, end);
     }
 
     @Override
-    public List<SetResponse> findSetByName(String name) {
+    public List<SetResponse> findSetByName(String name, int page, int size) {
         List<SetEntity> setEntities = setRepository.findAllByNameContaining(name);
         List<SetResponse> setResponses = new ArrayList<>();
         UserEntity currentUser = userService.getUserFromSecurityContext();
         setEntities.stream().filter(setEntity -> {
+                    if (currentUser.getRoleEntity().getName().equals("ADMIN"))
+                        return true;
                     String publicKey = AccessModifierType.getKeyfromValue("Public");
                     String privateKey = AccessModifierType.getKeyfromValue("Private");
                     String classKey = AccessModifierType.getKeyfromValue("Class");
@@ -262,14 +286,18 @@ public class SetServiceImpl implements SetService {
                     s.setNumberOfWords((long) wordListResponses.size());
                     setResponses.add(s);
                 });
-        return setResponses;
+
+        // Apply paging
+        int start = Math.min(page * size, setResponses.size());
+        int end = Math.min(start + size, setResponses.size());
+        return setResponses.subList(start, end);
     }
 
     @Override
-    public List<SetResponse> getPublicSet() {
+    public List<SetResponse> getPublicSet(int page, int size) {
         List<SetEntity> setEntities = setRepository.findAllByPrivacyStatus(AccessModifierType.getKeyfromValue("Public"));
         List<SetResponse> setResponses = new ArrayList<>();
-        for(SetEntity setEntity : setEntities){
+        for (SetEntity setEntity : setEntities) {
             SetResponse s = new SetResponse();
             modelMapper.map(setEntity, s);
             s.setUserDetailResponse(setEntity.getUserEntity().getFullName(),
@@ -281,7 +309,11 @@ public class SetServiceImpl implements SetService {
             s.setNumberOfWords((long) wordListResponses.size());
             setResponses.add(s);
         }
-        return setResponses;
+
+        // Apply paging
+        int start = Math.min(page * size, setResponses.size());
+        int end = Math.min(start + size, setResponses.size());
+        return setResponses.subList(start, end);
     }
 
 

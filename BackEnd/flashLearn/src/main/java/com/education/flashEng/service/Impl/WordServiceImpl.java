@@ -89,20 +89,25 @@ public class WordServiceImpl implements WordService {
     public List<WordResponse> getWordBySetId(Long setId) {
         SetEntity setEntity = setRepository.findById(setId)
                 .orElseThrow(() -> new EntityNotFoundWithIdException("SetEntity", setId.toString()));
-        if(!setEntity.getPrivacyStatus().equals(AccessModifierType.getKeyfromValue("Public"))){
+        if (!setEntity.getPrivacyStatus().equals(AccessModifierType.getKeyfromValue("Public"))) {
             UserEntity user = userService.getUserFromSecurityContext();
-            if((user.getClassMemberEntityList().stream().noneMatch(classMemberEntity -> classMemberEntity.getClassEntity().getSetsEntityList().contains(setEntity))&&setEntity.getPrivacyStatus().equals(AccessModifierType.getKeyfromValue("Class")))||(setEntity.getPrivacyStatus().equals(AccessModifierType.getKeyfromValue("Private"))&&!Objects.equals(setEntity.getUserEntity().getId(), user.getId()))){
+            if (!user.getRoleEntity().getName().equals("ADMIN")&&((user.getClassMemberEntityList().stream()
+                    .noneMatch(classMemberEntity -> classMemberEntity.getClassEntity().getSetsEntityList().contains(setEntity))
+                    && setEntity.getPrivacyStatus().equals(AccessModifierType.getKeyfromValue("Class")))
+                    || (setEntity.getPrivacyStatus().equals(AccessModifierType.getKeyfromValue("Private"))
+                    && !Objects.equals(setEntity.getUserEntity().getId(), user.getId())))) {
                 throw new IllegalArgumentException("You do not have permission to get word in this set");
             }
         }
 
         List<WordEntity> wordEntities = wordRepository.findAllBySetEntityId(setId);
         List<WordResponse> wordListResponses = new ArrayList<>();
-        for(WordEntity wordEntity : wordEntities){
+        for (WordEntity wordEntity : wordEntities) {
             WordResponse wordListResponse = new WordResponse();
             modelMapper.map(wordEntity, wordListResponse);
             wordListResponses.add(wordListResponse);
         }
+
         return wordListResponses;
     }
 
@@ -149,7 +154,7 @@ public class WordServiceImpl implements WordService {
     }
 
     @Override
-    public List<WordResponse> getCurrentUserWord() {
+    public List<WordResponse> getCurrentUserWord(int page, int size) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<StudySessionEntity> studySessionEntities = user.getStudySessionEntityList();
 
@@ -162,7 +167,7 @@ public class WordServiceImpl implements WordService {
             Long wordId = studySessionEntity.getWordEntity().getId();
             if (!wordIds.contains(wordId)) {
                 wordIds.add(wordId);
-                if(timeUtil.addFractionOfDay(studySessionEntity.getCreatedAt(),studySessionEntity.getReminderTime()).isAfter(LocalDateTime.now()))
+                if (timeUtil.addFractionOfDay(studySessionEntity.getCreatedAt(), studySessionEntity.getReminderTime()).isAfter(LocalDateTime.now()))
                     continue;
 
                 WordResponse wordResponse = new WordResponse();
@@ -170,6 +175,10 @@ public class WordServiceImpl implements WordService {
                 wordResponses.add(wordResponse);
             }
         }
-        return wordResponses;
+
+        // Apply paging
+        int start = Math.min(page * size, wordResponses.size());
+        int end = Math.min(start + size, wordResponses.size());
+        return wordResponses.subList(start, end);
     }
 }

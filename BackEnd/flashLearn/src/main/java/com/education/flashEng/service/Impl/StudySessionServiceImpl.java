@@ -59,27 +59,47 @@ public class StudySessionServiceImpl implements StudySessionService {
     }
 
     @Override
-    public List<StatisticByTimeResponse> getUsersStudyStatisticByTime() {
+    public List<StatisticByTimeResponse> getUsersStudyStatisticByTime(int page, int size) {
         Long userId = userServiceImpl.getUserFromSecurityContext().getId();
-        return studySessionRepository.findUsersStudyStaticByTime(userId);
+        List<StatisticByTimeResponse> statistics = studySessionRepository.findUsersStudyStaticByTime(userId);
+
+        // Apply paging
+        int start = Math.min(page * size, statistics.size());
+        int end = Math.min(start + size, statistics.size());
+        return statistics.subList(start, end);
     }
 
     @Override
-    public List<StatisticByWordResponse> getUsersStudyStatisticByWord() {
+    public List<StatisticByWordResponse> getUsersStudyStatisticByWord(int page, int size) {
         Long userId = userServiceImpl.getUserFromSecurityContext().getId();
-        return studySessionRepository.findUsersStudyStaticByWord(userId);
+        List<StatisticByWordResponse> statistics = studySessionRepository.findUsersStudyStaticByWord(userId);
+
+        // Apply paging
+        int start = Math.min(page * size, statistics.size());
+        int end = Math.min(start + size, statistics.size());
+        return statistics.subList(start, end);
     }
 
     @Override
-    public List<StatisticBySpecificTimeResponse> getUsersStudyStaticBySpecificTime(LocalDate time) {
+    public List<StatisticBySpecificTimeResponse> getUsersStudyStaticBySpecificTime(LocalDate time, int page, int size) {
         Long userId = userServiceImpl.getUserFromSecurityContext().getId();
-        return studySessionRepository.findUsersStudyStaticBySpecificTime(userId, time);
+        List<StatisticBySpecificTimeResponse> statistics = studySessionRepository.findUsersStudyStaticBySpecificTime(userId, time);
+
+        // Apply paging
+        int start = Math.min(page * size, statistics.size());
+        int end = Math.min(start + size, statistics.size());
+        return statistics.subList(start, end);
     }
 
     @Override
-    public List<StatisticBySpecificWordResponse> getUsersStudyStaticBySpecificWord(Long wordId) {
+    public List<StatisticBySpecificWordResponse> getUsersStudyStaticBySpecificWord(Long wordId, int page, int size) {
         Long userId = userServiceImpl.getUserFromSecurityContext().getId();
-        return studySessionRepository.findUsersStudyStaticBySpecificWord(userId, wordId);
+        List<StatisticBySpecificWordResponse> statistics = studySessionRepository.findUsersStudyStaticBySpecificWord(userId, wordId);
+
+        // Apply paging
+        int start = Math.min(page * size, statistics.size());
+        int end = Math.min(start + size, statistics.size());
+        return statistics.subList(start, end);
     }
 
     @Override

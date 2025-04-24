@@ -52,7 +52,7 @@ public class ClassMemberServiceImpl implements ClassMemberService {
                 .orElseThrow(() -> new AccessDeniedException("User is not a member of this class."));
         ClassMemberEntity classCurrentMemberEntity = classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId())
                 .orElseThrow(() -> new AccessDeniedException("You are not a member of this class."));
-        if (!classCurrentMemberEntity.getRoleClassEntity().getName().equals("ADMIN"))
+        if (!classCurrentMemberEntity.getRoleClassEntity().getName().equals("ADMIN") && !user.getRoleEntity().getName().equals("ADMIN"))
             throw new AccessDeniedException("You are not authorized to delete members from this class.");
         if (classMemberEntity.getUserEntity().getId().equals(user.getId()))
             leaveClass(classId);
@@ -69,7 +69,7 @@ public class ClassMemberServiceImpl implements ClassMemberService {
         UserEntity user = userService.getUserFromSecurityContext();
         ClassMemberEntity classMemberEntity = classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId())
                 .orElseThrow(() -> new AccessDeniedException("You are not a member of this class."));
-        if (!classMemberEntity.getRoleClassEntity().getName().equals("ADMIN"))
+        if (!classMemberEntity.getRoleClassEntity().getName().equals("ADMIN") && !user.getRoleEntity().getName().equals("ADMIN"))
             throw new AccessDeniedException("You are not authorized to change roles in this class.");
         ClassMemberEntity memberEntity = classMemberRepository.findByClassEntityIdAndUserEntityId(classId, userId)
                 .orElseThrow(() -> new EntityNotFoundWithIdException("Class Member", userId.toString()));
@@ -88,7 +88,7 @@ public class ClassMemberServiceImpl implements ClassMemberService {
     @Override
     public ClassMemberListReponse getAllMembers(Long classId) {
         UserEntity user = userService.getUserFromSecurityContext();
-        if (classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId()).isEmpty())
+        if (classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId()).isEmpty() && !user.getRoleEntity().getName().equals("ADMIN"))
             throw new AccessDeniedException("You are not a member of this class.");
         ClassEntity classEntity = classService.getClassById(classId);
         ClassMemberListReponse classMemberListReponse = ClassMemberListReponse.builder()

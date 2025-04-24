@@ -1,5 +1,6 @@
 package com.education.flashEng.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -12,6 +13,8 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+
 public class StatisticBySpecificTimeResponse {
     private LocalDate date;
     private LocalTime time;

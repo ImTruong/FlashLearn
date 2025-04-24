@@ -9,7 +9,9 @@ import com.education.flashEng.payload.request.UpdateUserPasswordRequest;
 import com.education.flashEng.payload.request.UpdateUserRequest;
 import com.education.flashEng.payload.response.UserDetailResponse;
 import com.education.flashEng.repository.UserRepository;
+import com.education.flashEng.service.RoleService;
 import com.education.flashEng.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -28,6 +32,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RoleService roleService;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -82,9 +89,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean updatePassword(UpdateUserPasswordRequest updateUserPasswordRequest) {
         UserEntity user = getUserFromSecurityContext();
-        if(!passwordEncoder.matches(updateUserPasswordRequest.getOldPassword(), user.getPassword()))
+        if (!passwordEncoder.matches(updateUserPasswordRequest.getOldPassword(), user.getPassword()))
             throw new PasswordMismatchException("Current password is incorrect");
-        if(!updateUserPasswordRequest.getNewPassword().equals(updateUserPasswordRequest.getConfirmPassword()))
+        if (!updateUserPasswordRequest.getNewPassword().equals(updateUserPasswordRequest.getConfirmPassword()))
             throw new PasswordMismatchException("New password and confirm password do not match");
         user.setPassword(passwordEncoder.encode(updateUserPasswordRequest.getNewPassword()));
         userRepository.save(user);
@@ -103,4 +110,54 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 
+    @Override
+    public List<UserDetailResponse> getAllUserDetailResponse(int page, int size, String email, String userName) {
+        UserEntity user = getUserFromSecurityContext();
+        if (user.getRoleEntity().getName().equals("ADMIN")) {
+            List<UserDetailResponse> result = userRepository.findAllUserDetailResponse(email, userName);
+            return result.subList(page * size, Math.min((page + 1) * size, result.size()));
+        }
+        else
+            throw new UserNotAuthenticatedException("You are not authorized to do this action");
+    }
+
+    @Override
+    public boolean deleteUser(Long id) {
+        UserEntity user = getUserFromSecurityContext();
+        if (user.getRoleEntity().getName().equals("ADMIN")) {
+            UserEntity userToDelete = userRepository.findByIdAndStatus(id, 1)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+            userToDelete.setStatus(0);
+            userRepository.save(userToDelete);
+            return true;
+        } else
+            throw new UserNotAuthenticatedException("You are not authorized to do this action");
+    }
+
+    @Override
+    public boolean updateUserRole(Long userId, Long roleId) {
+        UserEntity user = getUserFromSecurityContext();
+        if (user.getRoleEntity().getName().equals("ADMIN")) {
+            UserEntity userToUpdate = userRepository.findByIdAndStatus(userId, 1)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+            userToUpdate.setRoleEntity(roleService.findRoleById(roleId)
+                    .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + roleId)));
+            userRepository.save(userToUpdate);
+            return true;
+        } else
+            throw new UserNotAuthenticatedException("You are not authorized to do this action");
+    }
+
+    @Override
+    public boolean AdminUpdateUserPassword(Long userId, String password) {
+        UserEntity user = getUserFromSecurityContext();
+        if (user.getRoleEntity().getName().equals("ADMIN")) {
+            UserEntity userToUpdate = userRepository.findByIdAndStatus(userId, 1)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+            userToUpdate.setPassword(passwordEncoder.encode(password));
+            userRepository.save(userToUpdate);
+            return true;
+        } else
+            throw new UserNotAuthenticatedException("You are not authorized to do this action");
+    }
 }

@@ -1,5 +1,6 @@
 package com.education.flashEng.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.sql.Date;
@@ -10,6 +11,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+
 public class StatisticBySpecificWordResponse {
     Long wordId;
     String word;

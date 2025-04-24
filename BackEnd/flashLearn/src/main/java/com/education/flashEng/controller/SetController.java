@@ -18,14 +18,16 @@ public class SetController {
     SetService setService;
 
     @GetMapping
-    public ResponseEntity<?> getOwnSets() {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Own Set Successfully", setService.getOwnPublicAndPrivateSet());
+    public ResponseEntity<?> getOwnSets(@RequestParam (required = true) int page,
+                                        @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Own Set Successfully", setService.getOwnPublicAndPrivateSet(page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/public")
-    public ResponseEntity<?> getPublicSets() {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Public Sets Successfully", setService.getPublicSet());
+    public ResponseEntity<?> getPublicSets(@RequestParam(required = true) int page,
+                                           @RequestParam(required = true) int size)  {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Public Sets Successfully", setService.getPublicSet(page, size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -36,20 +38,26 @@ public class SetController {
     }
 
     @GetMapping("/recent")
-    public ResponseEntity<?> getRecentSets() {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Recent Sets Successfully", setService.getRecentSet());
+    public ResponseEntity<?> getRecentSets(@RequestParam (required = true) int page,
+                                           @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Recent Sets Successfully", setService.getRecentSet(page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/class/{classId}")
-    public ResponseEntity<?> getSetsOfClass(@PathVariable Long classId) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Sets Of Class Successfully", setService.getSetByClassID(classId));
+    public ResponseEntity<?> getSetsOfClass(@PathVariable Long classId,
+                                            @RequestParam (required = true) int page,
+                                            @RequestParam (required = true) int size) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Sets Of Class Successfully", setService.getSetByClassID(classId,page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchSets(@RequestParam @NotNull(message = "Set`s name cannot be Null") String name) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Sets Fetched Successfully", setService.findSetByName(name));
+    public ResponseEntity<?> searchSets(@RequestParam @NotNull(message = "Set`s name cannot be Null") String name,
+                                        @RequestParam (required = true) int page,
+                                        @RequestParam (required = true) int size
+    ) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Sets Fetched Successfully", setService.findSetByName(name,page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

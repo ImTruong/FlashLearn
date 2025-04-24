@@ -32,7 +32,7 @@ public interface NotificationService {
 
     boolean createStudySessionNotification(StudySessionEntity studySessionEntity, LocalDateTime localDateTime);
 
-    List<NotificationResponse> getAllCurrentUserNotifications();
+    List<NotificationResponse> getAllCurrentUserNotifications(int page,int size);
 
     boolean deleteUserNotificationOfAClassWhenUserRoleChanged(ClassEntity classEntity, UserEntity userEntity);
 

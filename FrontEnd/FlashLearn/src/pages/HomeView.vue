@@ -3,7 +3,6 @@
     import Header from "@/components/Header.vue";
     import SetBox from "@/components/SetBox.vue";
     import { useRouter } from "vue-router"; 
-    import { useStore } from "vuex";
     import { getCurrentUser } from "@/apis/userApi";
     import {getRecentSet, getAllPublicSet, getLibrarySet} from "@/apis/setApi";
     
@@ -13,6 +12,12 @@
     const displayRecentSets = ref([]);
     const recentSets = ref([]);
     const publicSets = ref([]);
+    const recentSetsPage = ref(0);
+    const publicSetsPage = ref(0);
+    const librarySetsPage = ref(0);
+    const recentSetsSize = ref(6);
+    const publicSetsSize = ref(6);
+    const librarySetsSize = ref(6);
 
     const showAllSetsRecent = () => {
         displayRecentSets.value = recentSets.value;
@@ -28,7 +33,7 @@
 
     const fetchRecentSet = async (token) => {
         try {
-            const response = await getRecentSet(token);
+            const response = await getRecentSet(token, recentSetsPage.value, recentSetsSize.value);
             recentSets.value = response;
             displayRecentSets.value = recentSets.value.slice(0, 3);
         } catch (error) {
@@ -37,9 +42,17 @@
     }
     const fetchPublicSet = async (token) => {
         try {
-            const response = await getAllPublicSet(token);
+            const response = await getAllPublicSet(token, publicSetsPage.value, publicSetsSize.value);
             publicSets.value = response;
             displayPublicSets.value = publicSets.value.slice(0, 3);
+        } catch (error) {
+            alert(error)
+        }
+    }
+    const fetchLibrarySet = async (token) => {
+        try {
+            const response = await getLibrarySet(token, librarySetsPage.value, librarySetsSize.value);
+            sets.value = response;
         } catch (error) {
             alert(error)
         }
@@ -50,7 +63,7 @@
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      sets.value = await getLibrarySet(token);
+      await fetchLibrarySet(token);
       await fetchUserInfo(token);
       await fetchRecentSet(token);
       await fetchPublicSet(token);

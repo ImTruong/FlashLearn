@@ -9,13 +9,13 @@ import java.util.List;
 
 public interface SetService {
     SetResponse createSet(CreateSetRequest createSetRequest);
-    List<SetResponse> getOwnPublicAndPrivateSet();
+    List<SetResponse> getOwnPublicAndPrivateSet(int page,int size);
     List<SetResponse> getPrivateSet();
-    List<SetResponse> getSetByClassID(Long classID);
+    List<SetResponse> getSetByClassID(Long classID,int page, int size);
     boolean updateSet(UpdateSetRequest updateSetRequest);
     boolean deleteSetById(Long setID);
-    List<SetResponse> getRecentSet();
-    List<SetResponse> findSetByName(String name);
+    List<SetResponse> getRecentSet(int page,int size);
+    List<SetResponse> findSetByName(String name,int page, int size);
 
-    List<SetResponse> getPublicSet();
+    List<SetResponse> getPublicSet(int page,int size);
 }

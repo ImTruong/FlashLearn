@@ -13,13 +13,15 @@ const requestId = ref("");
 const router = useRouter();
 const setRequest = ref(false);
 const classRequest = ref(false);
+const page = ref(0);
+const size = ref(1000);
 
 let intervalId = null; // để lưu id của setInterval
 
 const fetchNotificationsData = async () => {
   try {
     const token = localStorage.getItem("token");
-    const response = await fetchNotifications(token);
+    const response = await fetchNotifications(token, page.value, size.value);
     notifications.value = response.data;
   } catch (error) {
     if (error.response) {

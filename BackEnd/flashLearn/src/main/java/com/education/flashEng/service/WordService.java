@@ -17,5 +17,5 @@ public interface WordService {
     boolean updateWord(UpdateWordRequest updateWordRequest);
     boolean deleteWordById(Long wordId);
 
-    List<WordResponse> getCurrentUserWord();
+    List<WordResponse> getCurrentUserWord(int page,int size);
 }

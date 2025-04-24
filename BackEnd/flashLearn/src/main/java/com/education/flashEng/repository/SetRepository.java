@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface SetRepository extends JpaRepository<SetEntity, Long> {
     List<SetEntity> findAllByPrivacyStatus(String privacyStatus);
     List<SetEntity> findAllByPrivacyStatusAndUserEntityId(String privacyStatus, Long userId);

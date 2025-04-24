@@ -163,11 +163,15 @@ export const rejectSetRequest = async (requestId, token) => {
     }
 };
 
-export const getAllPublicSet = async (token) => {
+export const getAllPublicSet = async (token,page,size) => {
     try {
         const response = await axios.get('/set/public', {
             headers: {
                 Authorization: `Bearer ${token}`,
+            },
+            params: {
+                page: page,
+                size: size
             }
         });
         return response.data.data;
@@ -202,11 +206,15 @@ export const getAllPrivateSet = async (token) => {
     return privateSets;
 }
 
-export const getRecentSet = async (token) => {
+export const getRecentSet = async (token,page,size) => {
     try {
         const response = await axios.get('/set/recent', {
             headers: {
                 Authorization: `Bearer ${token}`,
+            },
+            params: {
+                page: page,
+                size: size
             }
         });
         return response.data.data;
@@ -224,11 +232,15 @@ export const getRecentSet = async (token) => {
     // return recentSets;
 }
 
-export const getLibrarySet = async (token) => {
+export const getLibrarySet = async (token,page,size) => {
     try {
         const response = await axios.get('/set', {
             headers: {
                 Authorization: `Bearer ${token}`,
+            },
+            params: {
+                page: page,
+                size: size
             }
         });
         console.log(response.data.data)
@@ -237,6 +249,30 @@ export const getLibrarySet = async (token) => {
         if (error.response && error.response.data && error.response.data.message) {
             console.log("Error message:", error.response.data.message);
             return error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+}
+
+export const getAllSets = async (token,name,page,size) => {
+    try {
+        const response = await axios.get('/admin/set', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params:{
+                name: name,
+                page: page,
+                size: size
+            }
+        });
+        return response.data.data;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            throw error.response.data.message;
         } else {
             console.log("Unexpected error:", error);
             throw new Error("Something went wrong");

@@ -31,8 +31,9 @@ public class WordController {
     }
 
     @GetMapping("/userCurrent")
-    public ResponseEntity<?> getCurrentUserWord(){
-        ApiResponse<?> response = new ApiResponse<>(true, "Get Current Reminder Words Successfully", wordService.getCurrentUserWord());
+    public ResponseEntity<?> getCurrentUserWord(@RequestParam (required = true) int page,
+                                                @RequestParam (required = true) int size){
+        ApiResponse<?> response = new ApiResponse<>(true, "Get Current Reminder Words Successfully", wordService.getCurrentUserWord(page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
