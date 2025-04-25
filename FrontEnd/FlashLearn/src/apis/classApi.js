@@ -496,3 +496,22 @@ export const getAllClasses = async (token,name,page,size) => {
         }
     }
 }
+
+export const deleteClass = async (classId, token) => {
+    try {
+        const response = await axios.delete(`/admin/class/${classId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return response.data.message;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            throw error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+}

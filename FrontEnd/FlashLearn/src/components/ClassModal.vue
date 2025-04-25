@@ -6,6 +6,8 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
     import SetTable from '../components/SetTable.vue';
     import { leaveClass } from '@/apis/classApi';
     import { getSetByClassId } from '@/apis/setApi';
+    import { deleteClass } from '@/apis/classApi';
+
 
     const classTable = ref(false);
     const sets = ref([]);
@@ -22,6 +24,8 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
     const inClass = ref(true);
     const icon = ref(false);
     const search = ref("");
+    const page = ref(0);
+    const size = ref(10);
 
     function closeOverlay() {
         emit('close');
@@ -57,6 +61,18 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
         }
     };
 
+    const handleDeleteClass = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await deleteClass(token, classId);
+            alert(response);
+            emit("close");
+        } catch (error) {
+            console.log(error)
+            alert(error);
+        }
+    };
+
     const handleSet = (data) => {
         existingSet.value = data;
     };
@@ -75,7 +91,7 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
     const fetchSets = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await getSetByClassId(classId, token);
+        const response = await getSetByClassId(classId, token,page.value,size.value);
         sets.value = response;
       } catch (error) {
         alert(error);
@@ -105,6 +121,7 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
       <img src="../assets/add_set.svg" alt="Icon" class="add-set-icon" @click="showSetTable(false)">
       <img src="../assets/add_member.svg" alt="Icon" class="add-member-icon" @click="showClassTable">
       <img src="../assets/leave-group.svg" alt="Icon" class="leave-group-icon" @click="handleLeaveClass">
+      <img src="../assets/icons/delete.png"  alt="Icon" class="delete-group-icon" @click="handleDeleteClass">
     </div>
     <h2 @click="icon = !icon">
       {{ className }}
@@ -213,7 +230,7 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 200px;
+  padding: 5px  5px  5px 5px;
   height: 60px;
   background-color: rgb(251, 251, 251);
   z-index: 12;
@@ -232,6 +249,20 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
 .add-member-icon {
   cursor: pointer;
   height: 40px;
+}
+
+.add-member-icon:hover {
+  transform: scale(1.05);
+}
+
+.delete-group-icon{
+  cursor: pointer;
+  height: 30px;
+  margin-left: 10px;
+}
+
+.delete-group-icon:hover {
+  transform: scale(1.05);
 }
 
 .add-member-icon:hover {

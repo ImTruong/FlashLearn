@@ -77,12 +77,16 @@ export const deleteSet = async (setId, token) => {
     // store.commit('deleteSet', setId);
 };
 
-export const getSetByClassId = async (classId, token) => {
+export const getSetByClassId = async (classId, token,page,size) => {
     try {
         const response = await axios.get(`/set/class/${classId}`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
+            params:{
+                page:page,
+                size:size
+            }
         });
         return response.data.data;
     }catch (error) {

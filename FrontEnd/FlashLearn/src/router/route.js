@@ -58,11 +58,11 @@ const router = createRouter({
         {
             path: "/library",
             name: "library",
-            component: Admin
+            component: YourLibrary
         },
         {
-            path: "/admin",
-            name: "admin",
+            path: "/management",
+            name: "management",
             component: Admin
         }
     ]
