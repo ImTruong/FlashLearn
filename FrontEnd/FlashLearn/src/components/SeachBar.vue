@@ -10,7 +10,8 @@
     const {searchQuery,  Overlay_background } = defineProps(['searchQuery', 'Overlay_background']);
     const sets = ref([]);
     const token = localStorage.getItem('token');
-
+    const page = ref(0);
+    const size = ref(10);
 
     const emit = defineEmits();
 
@@ -22,7 +23,7 @@
 
     async function getClasses() {
       try{
-        classes.value = await getClassesByName(searchQuery, token);
+        classes.value = await getClassesByName(searchQuery, token, page.value, size.value);
       }
       catch(e){
         console.log(e);
@@ -32,7 +33,7 @@
 
     async function getSets() {
       try{
-        sets.value = await getSetsByName(searchQuery, token);
+        sets.value = await getSetsByName(searchQuery, token, page.value, size.value);
       }
       catch(e){
         console.log(e);

@@ -20,6 +20,8 @@
     const classId = ref(null);
     const token = localStorage.getItem('token'); 
     const isDisplayRoleSetting = ref(false);
+    const page = ref(0);
+    const size = ref(10);
 
     const saveCLassName = async () => {
         const token = localStorage.getItem('token');
@@ -118,7 +120,7 @@
     const getMember = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await getMemberList(classId.value, token);
+            const response = await getMemberList(classId.value, token, page.value, size.value);
             memberList.value = response.memberList;
         } catch (error) {
             alert(error);
