@@ -213,7 +213,7 @@ public class SetServiceImpl implements SetService {
             if(!setEntity.getUserEntity().getId().equals(user.getId())&&!setEntity.getPrivacyStatus().equals(String.valueOf(AccessModifierType.getKeyfromValue("Class")))) {
                 throw new IllegalArgumentException("You are not the owner of the set");
             }
-            else {
+            else if(setEntity.getPrivacyStatus().equals(String.valueOf(AccessModifierType.getKeyfromValue("Class")))){
                 boolean isAdmin = setEntity.getClassEntity().getClassMemberEntityList().stream()
                         .anyMatch(classMemberEntity -> classMemberEntity.getUserEntity().getId().equals(user.getId()) &&
                                 "ADMIN".equals(classMemberEntity.getRoleClassEntity().getName()));
@@ -256,10 +256,21 @@ public class SetServiceImpl implements SetService {
     }
 
     @Override
-    public List<SetResponse> findSetByName(String name, int page, int size) {
-        List<SetEntity> setEntities = setRepository.findAllByNameContaining(name);
-        List<SetResponse> setResponses = new ArrayList<>();
+    public List<SetResponse> findSetByName(Long classId, String name, int page, int size) {
         UserEntity currentUser = userService.getUserFromSecurityContext();
+        List<SetEntity> setEntities = null;
+        if (classId != null) {
+            ClassEntity classEntity = classRepository.findById(classId)
+                    .orElseThrow(() -> new EntityNotFoundWithIdException("ClassEntity", classId.toString()));
+            if (!currentUser.getRoleEntity().getName().equals("ADMIN")&&classEntity.getClassMemberEntityList().stream().noneMatch(classMemberEntity -> classMemberEntity.getUserEntity().getId().equals(currentUser.getId()))) {
+                throw new IllegalArgumentException("You do not belong to the class");
+            }
+            setEntities = setRepository.findAllByClassEntityIdAndNameContaining(classId, name);
+        }
+        else
+            setEntities = setRepository.findAllByNameContaining(name);
+        List<SetResponse> setResponses = new ArrayList<>();
+
         setEntities.stream().filter(setEntity -> {
                     if (currentUser.getRoleEntity().getName().equals("ADMIN"))
                         return true;
@@ -314,6 +325,14 @@ public class SetServiceImpl implements SetService {
         int start = Math.min(page * size, setResponses.size());
         int end = Math.min(start + size, setResponses.size());
         return setResponses.subList(start, end);
+    }
+
+    @Override
+    public boolean updateSetPrivacyToPrivateByEntity(SetEntity setEntity) {
+        setEntity.setPrivacyStatus("Private");
+        setEntity.setClassEntity(null);
+        setRepository.save(setEntity);
+        return true;
     }
 
 

@@ -12,9 +12,11 @@ public interface ClassMemberService {
 
     boolean changeRole(Long userId, Long classId, String role);
 
-    ClassMemberListReponse getAllMembers(Long classId);
+    ClassMemberListReponse getAllMembers(Long classId, Integer page, Integer size);
 
     boolean leaveClass(Long classId);
 
     boolean checkUserInClass(Long classId);
+
+    ClassMemberListReponse searchMembers(Long classId, String name, int page, int size);
 }

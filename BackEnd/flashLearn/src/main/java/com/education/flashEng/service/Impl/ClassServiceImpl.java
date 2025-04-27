@@ -23,6 +23,9 @@ import java.util.List;
 public class ClassServiceImpl implements ClassService {
 
     @Autowired
+    private SetService setService;
+
+    @Autowired
     private ClassRepository classRepository;
 
     @Autowired
@@ -70,7 +73,7 @@ public class ClassServiceImpl implements ClassService {
 
         classMemberService.saveClassMember(classMemberEntity);
         classEntity.getClassMemberEntityList().add(classMemberEntity);
-        return classMemberService.getAllMembers(classEntity.getId());
+        return classMemberService.getAllMembers(classEntity.getId(),0,1);
     }
 
     @Override
@@ -155,7 +158,7 @@ public class ClassServiceImpl implements ClassService {
         });
         //set all sets privacy status to private
         classEntity.getSetsEntityList().forEach(setEntity -> {
-            setEntity.setPrivacyStatus("Private");
+            setService.updateSetPrivacyToPrivateByEntity(setEntity);
         });
         //delete class
         classRepository.delete(classEntity);

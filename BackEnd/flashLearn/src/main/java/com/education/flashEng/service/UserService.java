@@ -21,4 +21,5 @@ public interface UserService {
     boolean deleteUser(Long id);
     boolean updateUserRole(Long userId, Long roleId);
     boolean AdminUpdateUserPassword(Long userId, String password);
+    boolean reActivateUser(Long id);
 }

@@ -15,7 +15,8 @@ public interface SetService {
     boolean updateSet(UpdateSetRequest updateSetRequest);
     boolean deleteSetById(Long setID);
     List<SetResponse> getRecentSet(int page,int size);
-    List<SetResponse> findSetByName(String name,int page, int size);
+    List<SetResponse> findSetByName(Long classId, String name,int page, int size);
 
     List<SetResponse> getPublicSet(int page,int size);
+    boolean updateSetPrivacyToPrivateByEntity(SetEntity setEntity);
 }

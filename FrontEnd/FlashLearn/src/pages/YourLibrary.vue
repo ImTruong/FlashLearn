@@ -9,14 +9,16 @@
   const token = localStorage.getItem('token');
   const classes = ref(null);
   const sets = ref(null);
+  const page = ref(0);
+  const size = ref(30);
 
   let intervalId = null;
 
   const fetchData = async () => {
     try {
       const [setsData, classesData] = await Promise.all([
-        getLibrarySet(token),
-        getCurrentUserClasses(token),
+        getLibrarySet(token, page.value, size.value),
+        getCurrentUserClasses(token, page.value, size.value),
       ]);
 
       sets.value = setsData;

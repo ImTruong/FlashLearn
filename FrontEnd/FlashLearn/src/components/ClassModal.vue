@@ -5,7 +5,7 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
     import ClassTable from './ClassTable.vue';
     import SetTable from '../components/SetTable.vue';
     import { leaveClass } from '@/apis/classApi';
-    import { getSetByClassId } from '@/apis/setApi';
+import {getSetByClassId, getSetsByName} from '@/apis/setApi';
     import { deleteClass } from '@/apis/classApi';
 
 
@@ -43,10 +43,12 @@ import {onMounted, defineProps, defineEmits, ref, watch, onUnmounted} from 'vue'
         visible.value = true;
     };
 
-    watch(search, () => {
-        filteredSets.value = sets.value.filter(set =>
-            set.name.toLowerCase().includes(search.value.toLowerCase())
-        );
+    watch(search, async () => {
+      clearInterval(intervalId);
+      const token = localStorage.getItem('token'); // Retrieve the token
+      const searchValue = (search.value || '').toLowerCase();
+      filteredSets.value = await getSetsByName(searchValue, token, page.value, size.value, classId);
+      sets.value = filteredSets.value;
     });
 
     const handleLeaveClass = async () => {

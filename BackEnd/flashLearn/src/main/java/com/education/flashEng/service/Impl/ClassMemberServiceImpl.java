@@ -86,7 +86,7 @@ public class ClassMemberServiceImpl implements ClassMemberService {
     }
 
     @Override
-    public ClassMemberListReponse getAllMembers(Long classId) {
+    public ClassMemberListReponse getAllMembers(Long classId, Integer page, Integer size) {
         UserEntity user = userService.getUserFromSecurityContext();
         if (classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId()).isEmpty() && !user.getRoleEntity().getName().equals("ADMIN"))
             throw new AccessDeniedException("You are not a member of this class.");
@@ -102,6 +102,9 @@ public class ClassMemberServiceImpl implements ClassMemberService {
                                 .build())
                         .toList())
                 .build();
+        int start = Math.min(page * size, classMemberListReponse.getMemberList().size());
+        int end = Math.min(start + size, classMemberListReponse.getMemberList().size());
+        classMemberListReponse.setMemberList(classMemberListReponse.getMemberList().subList(start, end));
         return classMemberListReponse;
     }
 
@@ -134,5 +137,29 @@ public class ClassMemberServiceImpl implements ClassMemberService {
         ClassMemberEntity classMemberEntity = classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId())
                 .orElseThrow(() -> new AccessDeniedException("You are not a member of this class."));
         return true;
+    }
+
+    @Override
+    public ClassMemberListReponse searchMembers(Long classId, String name, int page, int size) {
+        UserEntity user = userService.getUserFromSecurityContext();
+        if (classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId()).isEmpty() && !user.getRoleEntity().getName().equals("ADMIN"))
+            throw new AccessDeniedException("You are not a member of this class.");
+        ClassEntity classEntity = classService.getClassById(classId);
+        ClassMemberListReponse classMemberListReponse = ClassMemberListReponse.builder()
+                .classId(classEntity.getId())
+                .className(classEntity.getName())
+                .memberList(classEntity.getClassMemberEntityList().stream()
+                        .filter(classMemberEntity -> classMemberEntity.getUserEntity().getUsername().toLowerCase().contains(name.toLowerCase()))
+                        .map(classMemberEntity -> ClassMemberListReponse.MemberInfo.builder()
+                                .userId(classMemberEntity.getUserEntity().getId())
+                                .userName(classMemberEntity.getUserEntity().getUsername())
+                                .role(classMemberEntity.getRoleClassEntity().getName())
+                                .build())
+                        .toList())
+                .build();
+        int start = Math.min(page * size, classMemberListReponse.getMemberList().size());
+        int end = Math.min(start + size, classMemberListReponse.getMemberList().size());
+        classMemberListReponse.setMemberList(classMemberListReponse.getMemberList().subList(start, end));
+        return classMemberListReponse;
     }
 }

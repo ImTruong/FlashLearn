@@ -23,10 +23,6 @@ public class AdminClassController {
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping
-    public ResponseEntity<?> deleteClass(@RequestParam @NotNull(message = "classID is required") Long classId){
-        ApiResponse apiResponse = new ApiResponse(true, "Delete Class Successfully", classService.deleteClassById(classId));
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-    }
+
 
 }

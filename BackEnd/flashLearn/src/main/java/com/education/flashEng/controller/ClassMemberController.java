@@ -20,8 +20,10 @@ public class ClassMemberController {
     private ClassMemberService classMemberService;
 
     @GetMapping("/list")
-    public ResponseEntity<?> getMembers(@RequestParam @NotNull(message = "classId is required") Long classId) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Members Fetched Successfully", classMemberService.getAllMembers(classId));
+    public ResponseEntity<?> getMembers(@RequestParam @NotNull(message = "classId is required") Long classId,
+                                        @RequestParam int page,
+                                        @RequestParam int size) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Members Fetched Successfully", classMemberService.getAllMembers(classId,page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -49,4 +51,14 @@ public class ClassMemberController {
         ApiResponse<?> response = new ApiResponse<>(true, "Check User In Class Successfully", classMemberService.checkUserInClass(classId));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchMembers(@RequestParam @NotNull(message = "classId is required") Long classId,
+                                           @RequestParam String name,
+                                           @RequestParam int page,
+                                           @RequestParam int size) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Members Fetched Successfully", classMemberService.searchMembers(classId, name, page, size));
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }

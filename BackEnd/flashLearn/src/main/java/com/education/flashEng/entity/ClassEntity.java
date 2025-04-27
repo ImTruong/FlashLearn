@@ -32,16 +32,16 @@ public class ClassEntity {
     @OneToMany(mappedBy = "classEntity")
     private List<SetEntity> setsEntityList;
 
-    @OneToMany(mappedBy = "classEntity")
+    @OneToMany(mappedBy = "classEntity", cascade = CascadeType.ALL)
     private List<ClassInvitationEntity> classInvitationEntityList;
 
-    @OneToMany(mappedBy = "classEntity")
+    @OneToMany(mappedBy = "classEntity", cascade = CascadeType.ALL)
     private List<ClassSetRequestEntity> classSetRequestEntityList;
 
-    @OneToMany(mappedBy = "classEntity")
+    @OneToMany(mappedBy = "classEntity", cascade = CascadeType.ALL)
     private List<ClassMemberEntity> classMemberEntityList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "classEntity")
+    @OneToMany(mappedBy = "classEntity", cascade = CascadeType.ALL)
     private List<ClassJoinRequestEntity> classJoinRequestEntityList;
 
 }

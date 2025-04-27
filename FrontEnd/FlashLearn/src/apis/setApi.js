@@ -5,12 +5,18 @@ import store from '@/store';
 // end fake data
 import axios from "axios"
 
-export const getSetsByName = async (name,token) => {
+export const getSetsByName = async (name,token,page,size,classId=null) => {
     try{
         const response = await axios({
             method: 'GET',
-            url: `set?name=${name}`,
-            headers: { Authorization: `Bearer ${token}`}
+            url: `/set/search`,
+            headers: { Authorization: `Bearer ${token}`},
+            params: {
+                page: page,
+                size: size,
+                classId: classId,
+                name: name
+            }
         })
         return response.data.data
     }catch (error) {
@@ -247,7 +253,6 @@ export const getLibrarySet = async (token,page,size) => {
                 size: size
             }
         });
-        console.log(response.data.data)
         return response.data.data;
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
@@ -262,7 +267,7 @@ export const getLibrarySet = async (token,page,size) => {
 
 export const getAllSets = async (token,name,page,size) => {
     try {
-        const response = await axios.get('/admin/set', {
+        const response = await axios.get('/set/search', {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

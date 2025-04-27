@@ -53,11 +53,12 @@ public class SetController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchSets(@RequestParam @NotNull(message = "Set`s name cannot be Null") String name,
+    public ResponseEntity<?> searchSets(@RequestParam (required = false) String name,
+                                        @RequestParam (required = false) Long classId,
                                         @RequestParam (required = true) int page,
                                         @RequestParam (required = true) int size
     ) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Sets Fetched Successfully", setService.findSetByName(name,page,size));
+        ApiResponse<?> response = new ApiResponse<>(true, "Sets Fetched Successfully", setService.findSetByName(classId, name,page,size));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

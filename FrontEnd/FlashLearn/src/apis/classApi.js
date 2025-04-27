@@ -3,12 +3,17 @@ import store from '@/store';
 import classModule from '@/store/modules/classModule';
 // end fake data
 
-export const getClassesByName = async (name,token) => {
+export const getClassesByName = async (name,token, page, size) => {
     try{
         const response = await axios({
             method: 'GET',
             url: `class?name=${name}`,
-            headers: { Authorization: `Bearer ${token}`}
+            headers: { Authorization: `Bearer ${token}`},
+            params:{
+
+                page: page,
+                size: size
+            }
         })
         return response.data.data;
     }catch (error) {
@@ -109,7 +114,6 @@ export const inviteUser = async (classId, inviteeUsername, token) => {
 
 // Thu hồi lời mời
 export const revokeUser = async (invitationId, token) => {
-    console.log(invitationId);
     try {
         const response = await axios.delete(`/class/invitation/revoke?invitationId=${invitationId}`, {
             headers: {
@@ -191,11 +195,16 @@ export const updateClassName = async (payload, token) => {
 };
 
 // Lấy danh sách thành viên
-export const getMemberList = async (classId, token) => {
+export const getMemberList = async (classId, token, page, size) => {
     try {
-        const response = await axios.get(`/class/member/list?classId=${classId}`, {
+        const response = await axios.get(`/class/member/list`, {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params:{
+                classId:classId,
+                page:page,
+                size:size
             }
         });
         return response.data.data;
@@ -256,11 +265,15 @@ export const updateMemberRole = async (payload, token) => {
     // store.dispatch('classModule/updateMemberRole', payload);
 };
 
-export const getCurrentUserClasses = async (token) => {
+export const getCurrentUserClasses = async (token,page,size) => {
     try {
         const response = await axios.get('/class/user', {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params:{
+                page: page,
+                size: size
             }
         });
         return response.data.data;
@@ -497,11 +510,14 @@ export const getAllClasses = async (token,name,page,size) => {
     }
 }
 
-export const deleteClass = async (classId, token) => {
+export const deleteClass = async (token, classId) => {
     try {
-        const response = await axios.delete(`/admin/class/${classId}`, {
+        const response = await axios.delete(`/class`, {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                classId: classId,
             }
         });
         return response.data.message;
@@ -515,3 +531,5 @@ export const deleteClass = async (classId, token) => {
         }
     }
 }
+
+// export const searchClassMem

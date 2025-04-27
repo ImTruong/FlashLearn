@@ -158,4 +158,139 @@ export const getCurrentUser = async (token) => {
     //     throw new Error("Get user info failed");
 };
 
+export const getAllUsers = async (token,userName,email,page,size) => {
+    try {
+        const response = await axios.get('/admin/user', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                page: page,
+                size: size,
+                username: userName,
+                email: email
+            }
+        });
+        response.data.data.forEach((user) => {
+            user.deleted = user.status == 0;
+        })
+        return response.data.data;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            return error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+    // const { fakeDataUserList } = store.state.userModule;
+    // return fakeDataUserList;
+}
+
+export const deleteUser = async (token,userId) => {
+    try {
+        const response = await axios.delete('/admin/user', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                userId: userId
+            }
+        });
+        return response.data.message;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            return error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+    // const { fakeDataUserList } = store.state.userModule;
+    // store.dispatch('userModule/deleteUser', username);
+    // return "Delete user successfully";
+}
+
+export const updateUserRole = async (token,userId,roleId) => {
+    try {
+        const response = await axios.put('/admin/user/role', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                userId: userId,
+                role: roleId
+            }
+        });
+        return response.data.message;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            return error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+    // const { fakeDataUserList } = store.state.userModule;
+    // store.dispatch('userModule/updateUserRole', {
+    //     username: username,
+    //     role: role
+    // });
+    // return "Update user role successfully";
+}
+
+export const updateUserPassword = async (token,userId,password) => {
+    try {
+        const response = await axios.put('/admin/user/password', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                userId: userId,
+                password: password
+            }
+        });
+        return response.data.message;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            return error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+    // const { fakeDataUserList } = store.state.userModule;
+    // store.dispatch('userModule/updateUserPassword', {
+    //     username: username,
+    //     password: password
+    // });
+    // return "Update user password successfully";
+}
+
+export const reActivateUser = async (token,userId) => {
+    try {
+        const response = await axios.put('/admin/user/activate', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            params: {
+                userId: userId
+            }
+        });
+        return response.data.message;
+    } catch (error) {
+        if (error.response && error.response.data && error.response.data.message) {
+            console.log("Error message:", error.response.data.message);
+            throw error.response.data.message;
+        } else {
+            console.log("Unexpected error:", error);
+            throw new Error("Something went wrong");
+        }
+    }
+}
+
  

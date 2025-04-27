@@ -52,6 +52,7 @@ public class UserServiceImpl implements UserService {
 
         registerRequest.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         UserEntity user = modelMapper.map(registerRequest, UserEntity.class);
+        user.setRoleEntity(roleService.findRoleByName("MEMBER"));
         userRepository.save(user);
         return true;
     }
@@ -155,6 +156,19 @@ public class UserServiceImpl implements UserService {
             UserEntity userToUpdate = userRepository.findByIdAndStatus(userId, 1)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
             userToUpdate.setPassword(passwordEncoder.encode(password));
+            userRepository.save(userToUpdate);
+            return true;
+        } else
+            throw new UserNotAuthenticatedException("You are not authorized to do this action");
+    }
+
+    @Override
+    public boolean reActivateUser(Long id) {
+        UserEntity user = getUserFromSecurityContext();
+        if (user.getRoleEntity().getName().equals("ADMIN")) {
+            UserEntity userToUpdate = userRepository.findByIdAndStatus(id, 0)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+            userToUpdate.setStatus(1);
             userRepository.save(userToUpdate);
             return true;
         } else

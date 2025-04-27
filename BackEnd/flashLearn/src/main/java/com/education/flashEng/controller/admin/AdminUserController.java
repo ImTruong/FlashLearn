@@ -27,21 +27,27 @@ public class AdminUserController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteUser(@RequestParam @NotNull(message = "User id is required") Long userId) {
-        ApiResponse apiResponse = new ApiResponse(true, "Delete User Successfully", null);
+        ApiResponse apiResponse = new ApiResponse(userService.deleteUser(userId), "Delete User Successfully");
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PutMapping("/update/role")
+    @PutMapping("/role")
     public ResponseEntity<?> updateUserRole(@RequestParam @NotNull(message = "User id is required") Long userId,
                                             @RequestParam @NotNull(message = "Role is required") Long roleId) {
-        ApiResponse apiResponse = new ApiResponse(true, "Update User Role Successfully", null);
+        ApiResponse apiResponse = new ApiResponse(true, "Update User Role Successfully", userService.updateUserRole(userId, roleId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 
-    @PutMapping("/update/password")
+    @PutMapping("/password")
     public ResponseEntity<?> updateUserPassword(@RequestParam @NotNull(message = "User id is required") Long userId,
                                                 @RequestParam @NotNull(message = "Password is required") String password) {
-        ApiResponse apiResponse = new ApiResponse(true, "Update User Password Successfully", null);
+        ApiResponse apiResponse = new ApiResponse(true, "Update User Password Successfully", userService.AdminUpdateUserPassword(userId, password));
+        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+    }
+
+    @PutMapping("/reActivate")
+    public ResponseEntity<?> reActivateUser(@RequestParam @NotNull(message = "User id is required") Long userId) {
+        ApiResponse apiResponse = new ApiResponse(true, "Re-Activate User Successfully", userService.reActivateUser(userId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

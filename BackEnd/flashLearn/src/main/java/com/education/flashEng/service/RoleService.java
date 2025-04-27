@@ -8,4 +8,6 @@ public interface RoleService {
 
     Optional<RoleEntity> findRoleById(Long id);
 
+    RoleEntity findRoleByName(String name);
+
 }
