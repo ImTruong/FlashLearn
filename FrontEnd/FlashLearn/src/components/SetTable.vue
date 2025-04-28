@@ -30,9 +30,11 @@
     const showImg = ref(false);
     const image = ref("");
     const token = localStorage.getItem('token');
+    const page = ref(0);
+    const size = ref(10);
 
     onMounted(async() => {
-        myClasses.value = await getCurrentUserClasses(token);
+        myClasses.value = await getCurrentUserClasses(token, page.value, size.value);
         
     });
 

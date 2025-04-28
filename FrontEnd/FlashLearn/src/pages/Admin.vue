@@ -61,16 +61,61 @@ function closeOverlay() {
 
 const switchTab = (tabName) => {
   activeTab.value = tabName;
+  // Nếu chuyển tab, xóa giá trị tìm kiếm và làm mới dữ liệu
+  if (tabName === "User Management") {
+    search.value = "";
+  } else {
+    const token = localStorage.getItem("token");
+    page.value = 0;
+    fetchData(token);
+  }
+}
+
+// Hàm tìm kiếm mới
+const handleSearch = () => {
+  const token = localStorage.getItem("token");
+  // Reset về trang đầu tiên khi tìm kiếm
+  page.value = 0;
+  fetchData(token);
+}
+
+// Hàm dùng khi nhấn Enter trong input tìm kiếm
+const handleKeyDown = (event) => {
+  if (event.key === 'Enter') {
+    handleSearch();
+  }
+}
+
+// Hàm kiểm tra xem có hiển thị thanh tìm kiếm hay không
+const showSearchBar = () => {
+  return activeTab.value !== "User Management";
 }
 </script>
 
 <template>
   <main>
-    <div class="tabs">
-      <button :class="{ active: activeTab == 'Flashcard sets' }" @click="switchTab('Flashcard sets')">Flashcard sets</button>
-      <button :class="{ active: activeTab == 'Classes' }" @click="switchTab('Classes')">Classes</button>
-      <button :class="{ active: activeTab == 'User Management' }" @click="switchTab('User Management')">User Management</button>
+    <div class="header-container">
+      <div class="tabs">
+        <button :class="{ active: activeTab == 'Flashcard sets' }" @click="switchTab('Flashcard sets')">Flashcard sets</button>
+        <button :class="{ active: activeTab == 'Classes' }" @click="switchTab('Classes')">Classes</button>
+        <button :class="{ active: activeTab == 'User Management' }" @click="switchTab('User Management')">User Management</button>
+      </div>
+
+      <!-- Thanh tìm kiếm - ẩn khi ở tab User Management -->
+      <div v-if="showSearchBar()" class="search-container">
+        <input
+            type="text"
+            v-model="search"
+            placeholder="Search..."
+            class="search-input"
+            @keydown="handleKeyDown"
+        />
+        <button class="search-button" @click="handleSearch">
+          <img src="../assets/search-icon.svg" alt="Search" class="search-icon" />
+        </button>
+      </div>
     </div>
+
     <div class="line"></div>
 
     <!-- Tab Flashcard sets -->
@@ -123,6 +168,13 @@ main {
   padding: 50px;
 }
 
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .tabs {
   display: flex;
   gap: 20px;
@@ -142,24 +194,49 @@ main {
   border-bottom: 2px solid black;
 }
 
-.line {
-  /* position: absolute; */
+/* Kiểu dáng của thanh tìm kiếm */
+.search-container {
   display: flex;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  padding: 5px 10px;
+  background-color: white;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  padding: 8px;
+  width: 200px;
+  font-size: 14px;
+}
+
+.search-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.line {
   width: 100%;
   height: 1px;
   background-color: rgba(14, 14, 14, 0.1);
   margin-bottom: 30px;
-
 }
 
 .class-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
-
 }
 
 .class-card {
@@ -176,9 +253,7 @@ main {
   transform: scale(1.05);
 }
 
-
 .class-icon {
-  /* position: relative; */
   font-size: 30px;
   margin-right: 20px;
 }
