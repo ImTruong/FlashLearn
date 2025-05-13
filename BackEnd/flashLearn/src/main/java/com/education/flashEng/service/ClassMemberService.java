@@ -2,6 +2,7 @@ package com.education.flashEng.service;
 
 import com.education.flashEng.entity.ClassMemberEntity;
 import com.education.flashEng.payload.response.ClassMemberListReponse;
+import org.springframework.data.domain.Pageable;
 
 public interface ClassMemberService {
     ClassMemberEntity saveClassMember(ClassMemberEntity classMemberEntity);
@@ -12,11 +13,11 @@ public interface ClassMemberService {
 
     boolean changeRole(Long userId, Long classId, String role);
 
-    ClassMemberListReponse getAllMembers(Long classId, Integer page, Integer size);
+    ClassMemberListReponse getAllMembers(Long classId, Pageable pageable);
 
     boolean leaveClass(Long classId);
 
     boolean checkUserInClass(Long classId);
 
-    ClassMemberListReponse searchMembers(Long classId, String name, int page, int size);
+    ClassMemberListReponse searchMembers(Long classId, String name, Pageable pageable);
 }

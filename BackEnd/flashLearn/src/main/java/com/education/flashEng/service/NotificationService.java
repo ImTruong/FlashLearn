@@ -2,10 +2,10 @@ package com.education.flashEng.service;
 
 import com.education.flashEng.entity.*;
 import com.education.flashEng.payload.response.NotificationResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
 public interface NotificationService {
     boolean createClassJoinRequestNotification(ClassJoinRequestEntity classJoinRequestEntity);
@@ -32,7 +32,7 @@ public interface NotificationService {
 
     boolean createStudySessionNotification(StudySessionEntity studySessionEntity, LocalDateTime localDateTime);
 
-    List<NotificationResponse> getAllCurrentUserNotifications(int page,int size);
+    Page<NotificationResponse> getAllCurrentUserNotifications(Pageable pageable);
 
     boolean deleteUserNotificationOfAClassWhenUserRoleChanged(ClassEntity classEntity, UserEntity userEntity);
 

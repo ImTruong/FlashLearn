@@ -15,6 +15,10 @@ import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -73,7 +77,7 @@ public class ClassServiceImpl implements ClassService {
 
         classMemberService.saveClassMember(classMemberEntity);
         classEntity.getClassMemberEntityList().add(classMemberEntity);
-        return classMemberService.getAllMembers(classEntity.getId(),0,1);
+        return classMemberService.getAllMembers(classEntity.getId(), PageRequest.of(0, 1));
     }
 
     @Override
@@ -106,12 +110,12 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
-    public List<ClassInformationResponse> getAllCurrentUserClasses(int page,int size) {
+    public Page<ClassInformationResponse> getAllCurrentUserClasses(Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<ClassEntity> classEntityList = user.getClassMemberEntityList().stream()
                 .map(ClassMemberEntity::getClassEntity)
                 .toList();
-        return classEntityList.stream()
+        List<ClassInformationResponse> responses = classEntityList.stream()
                 .map(classEntity -> ClassInformationResponse.builder()
                         .classId(classEntity.getId())
                         .className(classEntity.getName())
@@ -119,10 +123,14 @@ public class ClassServiceImpl implements ClassService {
                         .numberOfSets(classEntity.getSetsEntityList().size())
                         .build())
                 .toList();
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), responses.size());
+        List<ClassInformationResponse> paginatedList = (start > responses.size()) ? List.of() : responses.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, responses.size());
     }
 
     @Override
-    public List<ClassInformationResponse> findClassByName(String name, int page, int size) {
+    public Page<ClassInformationResponse> findClassByName(String name, Pageable pageable) {
         name = "%" + name + "%";
         List<ClassEntity> classEntityList = classRepository.findAllByNameLike(name);
 
@@ -134,9 +142,10 @@ public class ClassServiceImpl implements ClassService {
                         .numberOfSets(classEntity.getSetsEntityList().size())
                         .build())
                 .toList();
-        int start = Math.min(page * size, result.size());
-        int end = Math.min(start + size, result.size());
-        return result.subList(start, end);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), result.size());
+        List<ClassInformationResponse> paginatedList = (start > result.size()) ? List.of() : result.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, result.size());
     }
 
     @Transactional

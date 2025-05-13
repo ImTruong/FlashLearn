@@ -8,7 +8,9 @@
     import NotificationList from './NotificationList.vue'
     import { useStore } from 'vuex';
 
-
+    const emit = defineEmits([
+        'reload'
+    ]);
     const store = useStore();
     const props = defineProps({
     recentSets: {
@@ -41,7 +43,9 @@
     const newItem = ref(false);
     const classTable = ref(false)
 
-
+    const reload = () => {
+        emit('reload');
+    };
 
     const toggleMenu = () => {
         menuOpen.value = !menuOpen.value;
@@ -150,8 +154,12 @@
             @close="setTable = false" 
             @save="handleSet"
             :existingSet="existingSet"
+            @reload="reload"
             />
-            <ClassTable v-if="classTable" @close="classTable = false"></ClassTable>
+            <ClassTable v-if="classTable"
+                        @close="classTable = false"
+                        @reload="reload"
+            ></ClassTable>
             <NotificationList 
                 v-if="showNotifications" 
                 @click="toggleNotifications"

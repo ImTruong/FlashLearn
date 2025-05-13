@@ -2,12 +2,10 @@ package com.education.flashEng.service;
 
 import com.education.flashEng.entity.ClassEntity;
 import com.education.flashEng.payload.request.CreateClassRequest;
-import com.education.flashEng.payload.response.ApiResponse;
 import com.education.flashEng.payload.response.ClassInformationResponse;
 import com.education.flashEng.payload.response.ClassMemberListReponse;
-
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ClassService {
     ClassMemberListReponse createClass(CreateClassRequest createClassRequest);
@@ -18,9 +16,9 @@ public interface ClassService {
 
     ClassInformationResponse getClassInformation(Long classId);
 
-    List<ClassInformationResponse> getAllCurrentUserClasses(int page, int size);
+    Page<ClassInformationResponse> getAllCurrentUserClasses(Pageable pageable);
 
-    List<ClassInformationResponse> findClassByName(String name, int page, int size);
+    Page<ClassInformationResponse> findClassByName(String name, Pageable pageable);
 
     boolean deleteClassByEntity(ClassEntity classEntity);
 

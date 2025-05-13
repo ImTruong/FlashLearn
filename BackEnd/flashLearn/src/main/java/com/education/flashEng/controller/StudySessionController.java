@@ -5,6 +5,7 @@ import com.education.flashEng.payload.response.ApiResponse;
 import com.education.flashEng.service.StudySessionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,32 +26,28 @@ public class StudySessionController {
     }
 
     @GetMapping("/time")
-    public ResponseEntity<?> getStudyStatisticsByTime(@RequestParam (required = true) int page,
-                                                      @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByTime(page,size));
+    public ResponseEntity<?> getStudyStatisticsByTime(Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByTime(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/word")
-    public ResponseEntity<?> getStudyStatisticsByWord(@RequestParam (required = true) int page,
-                                                      @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByWord(page,size));
+    public ResponseEntity<?> getStudyStatisticsByWord(Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticByWord(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/time/{time}")
     public ResponseEntity<?> getStudyStatisticsBySpecificTime(@PathVariable LocalDate time,
-                                                              @RequestParam (required = true) int page,
-                                                              @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStaticBySpecificTime(time,page,size));
+                                                              Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticBySpecificTime(time,pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/word/{wordId}")
     public ResponseEntity<?> getStudyStatisticsBySpecificWord(@PathVariable Long wordId,
-                                                              @RequestParam (required = true) int page,
-                                                              @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStaticBySpecificWord(wordId,page,size));
+                                                              Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true,"Get Statistic Successfully",studySessionService.getUsersStudyStatisticBySpecificWord(wordId,pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

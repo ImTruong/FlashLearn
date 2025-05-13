@@ -171,7 +171,7 @@ export const getAllUsers = async (token,userName,email,page,size) => {
                 email: email
             }
         });
-        response.data.data.forEach((user) => {
+        response.data.data.content.forEach((user) => {
             user.deleted = user.status == 0;
         })
         return response.data.data;
@@ -215,20 +215,20 @@ export const deleteUser = async (token,userId) => {
 
 export const updateUserRole = async (token,userId,roleId) => {
     try {
-        const response = await axios.put('/admin/user/role', {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-            params: {
-                userId: userId,
-                role: roleId
-            }
-        });
+        // Set default headers for all requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        // Use URLSearchParams for proper parameter formatting
+        const params = new URLSearchParams();
+        params.append('userId', userId);
+        params.append('roleId', roleId);
+
+        const response = await axios.put('/admin/user/role', params);
         return response.data.message;
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
             console.log("Error message:", error.response.data.message);
-            return error.response.data.message;
+            throw error;
         } else {
             console.log("Unexpected error:", error);
             throw new Error("Something went wrong");
@@ -244,15 +244,21 @@ export const updateUserRole = async (token,userId,roleId) => {
 
 export const updateUserPassword = async (token,userId,password) => {
     try {
-        const response = await axios.put('/admin/user/password', {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-            params: {
-                userId: userId,
-                password: password
+        // Using params in the correct location (in the config object)
+        const response = await axios.put('/admin/user/password',
+            // Empty body or null since we're using params
+            {},
+            // Config object with both headers and params
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                params: {
+                    userId: Number(userId),
+                    password: password
+                }
             }
-        });
+        );
         return response.data.message;
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
@@ -273,14 +279,17 @@ export const updateUserPassword = async (token,userId,password) => {
 
 export const reActivateUser = async (token,userId) => {
     try {
-        const response = await axios.put('/admin/user/activate', {
+        const response = await axios.put('/admin/user/reActivate',
+            {},
+            {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
             params: {
                 userId: userId
             }
-        });
+            }
+        );
         return response.data.message;
     } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {

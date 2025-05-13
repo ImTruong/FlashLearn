@@ -6,11 +6,10 @@
   import { deleteSet } from "@/apis/setApi";
   import { defineEmits } from 'vue';
 
-  const emit = defineEmits(['delete']);
+  const emit = defineEmits(['reload']);
   const hover  = ref(false);
   const router = useRouter();
   const props = defineProps(['set', 'classId']);
-  const set = props.set;
   const setTable = ref(false); 
   const existingSet = ref({});
   const isEditMode = ref(false);
@@ -19,7 +18,11 @@
   const store = useStore();
 
   const editSet = () => {
-    showSetTable(true, set)
+    showSetTable(true, props.set)
+  }
+
+  const reload = () => {
+    emit("reload");
   }
 
   const updateCurrentSet = (set) => {
@@ -27,21 +30,21 @@
   };
 
   const gameSet = () => {
-    if (!set.wordResponses || set.wordResponses.length === 0) {
+    if (!props.set.wordResponses || props.set.wordResponses.length === 0) {
         alert("No words in this set!");
         return; 
     }
-    updateCurrentSet(set);
-    router.push(`/fillgame/${set.id}`);
+    updateCurrentSet(props.set);
+    router.push(`/fillgame/${props.set.id}`);
   }
 
   const studySet = () => {
-    if (!set.wordResponses || set.wordResponses.length === 0) {
+    if (!props.set.wordResponses || props.set.wordResponses.length === 0) {
         alert("Please add words before studying!");
-        return; 
+        return;
     }
-    updateCurrentSet(set);
-    router.push(`/flashcard/${set.id}`); 
+    updateCurrentSet(props.set);
+    router.push(`/flashcard/${props.set.id}`);
   };
 
   const showSetTable = (editMode, existingSetData) => {
@@ -56,13 +59,14 @@
 
   const handleUpdate = (updatedRows) => {
     existingSet.value.wordListResponses = updatedRows;
+    emit("reload")
   };
 
   const handleDeleteSet = async () => {
     try {
-      await deleteSet(set.id, token);
+      await deleteSet(props.set.id, token);
       alert("Set deleted successfully!");
-      emit("delete", set.id);
+      emit("reload");
     } catch (error) {
       alert(error)
     }
@@ -73,9 +77,9 @@
 <template>
     <div class="card" @mouseover="hover = true" @mouseleave="hover = false" >
       <div class="card-text">
-        <h2>{{ set.name }}</h2>
-        <p class="number-terms">{{ set.numberOfWords }} {{ set.numberOfWords <= 1 ? 'term' : 'terms' }} </p>
-        <p>{{ set.userDetailResponse.fullName}}</p>
+        <h2>{{ props.set.name }}</h2>
+        <p class="number-terms">{{ props.set.numberOfWords }} {{ props.set.numberOfWords <= 1 ? 'term' : 'terms' }} </p>
+        <p>{{ props.set.userDetailResponse.fullName}}</p>
       </div>
       <div class="set-option">
         <div class="icon-container">
@@ -99,6 +103,7 @@
         :classId="props.classId"
         @close="closeSetTable" 
         @update="handleUpdate"
+        @reload="reload"
       />
 </template>
   

@@ -20,8 +20,7 @@ const fetchUsers = async () => {
     isLoading.value = true;
     const token = localStorage.getItem('token');
     const usersData = await getAllUsers(token, search.value, search.value, page.value, size.value);
-    users.value = usersData;
-    console.log(users);
+    users.value = usersData.content;
     isLoading.value = false;
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -76,9 +75,8 @@ const updatePassword = async () => {
 
   try {
     const token = localStorage.getItem('token');
-    await updateUserPassword(token, selectedUser.value.id, newPassword.value);
+    alert(await updateUserPassword(token, selectedUser.value.id, newPassword.value));
     showPasswordModal.value = false;
-    alert('Password updated successfully');
   } catch (error) {
     console.error('Error updating password:', error);
     passwordError.value = 'Unable to update password. Please try again later.';
@@ -88,10 +86,11 @@ const updatePassword = async () => {
 const updateRole = async () => {
   try {
     const token = localStorage.getItem('token');
-    await updateUserRole(token, selectedUser.value.id, newRole.value);
+    const roleId = newRole.value === 'ADMIN' ? 1 : 2;
+    await updateUserRole(token, selectedUser.value.id, roleId);
     showRoleModal.value = false;
-    fetchUsers(); // Refresh the list
     alert('Role updated successfully');
+    await fetchUsers(); // Refresh the list
   } catch (error) {
     console.error('Error updating role:', error);
     alert('Unable to update role. Please try again later.');
@@ -206,9 +205,8 @@ onMounted(() => {
         <div class="form-group">
           <label>Role:</label>
           <select v-model="newRole">
-            <option value="USER">USER</option>
+            <option value="USER">MEMBER</option>
             <option value="ADMIN">ADMIN</option>
-            <option value="MODERATOR">MODERATOR</option>
           </select>
         </div>
         <div class="form-actions">

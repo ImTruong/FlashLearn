@@ -15,6 +15,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +25,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -112,14 +116,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDetailResponse> getAllUserDetailResponse(int page, int size, String email, String userName) {
+    public Page<UserDetailResponse> getAllUserDetailResponse(Pageable pageable, String email, String userName) {
         UserEntity user = getUserFromSecurityContext();
         if (user.getRoleEntity().getName().equals("ADMIN")) {
             List<UserDetailResponse> result = userRepository.findAllUserDetailResponse(email, userName);
-            return result.subList(page * size, Math.min((page + 1) * size, result.size()));
-        }
-        else
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), result.size());
+            List<UserDetailResponse> paginatedList = (start > result.size()) ? Collections.emptyList() : result.subList(start, end);
+            return new PageImpl<>(paginatedList, pageable, result.size());
+        } else {
             throw new UserNotAuthenticatedException("You are not authorized to do this action");
+        }
     }
 
     @Override

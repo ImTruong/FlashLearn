@@ -5,8 +5,8 @@ import com.education.flashEng.payload.request.RegisterRequest;
 import com.education.flashEng.payload.request.UpdateUserPasswordRequest;
 import com.education.flashEng.payload.request.UpdateUserRequest;
 import com.education.flashEng.payload.response.UserDetailResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
     boolean register(RegisterRequest registerRequest);
@@ -17,7 +17,7 @@ public interface UserService {
     boolean update(UpdateUserRequest updateRequest);
     boolean updatePassword(UpdateUserPasswordRequest updateUserPasswordRequest);
     UserDetailResponse getUserDetailResponse();
-    List<UserDetailResponse> getAllUserDetailResponse(int page, int size, String email, String userName);
+    Page<UserDetailResponse> getAllUserDetailResponse(Pageable pageable, String email, String userName);
     boolean deleteUser(Long id);
     boolean updateUserRole(Long userId, Long roleId);
     boolean AdminUpdateUserPassword(Long userId, String password);

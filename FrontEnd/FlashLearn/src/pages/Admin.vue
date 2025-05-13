@@ -8,30 +8,61 @@ import { getAllSets }  from "@/apis/setApi.js";
 import { ref } from "vue";
 import { onMounted, onUnmounted } from "vue";
 
-
 const classModalMode = ref(false);
 const classTableMode = ref(false);
 const activeTab = ref("Flashcard sets");
 const classes = ref(null);
 const sets = ref(null);
 const search = ref("");
-const page = ref(0);
-const size = ref(10)
+
+// Sets pagination
+const setsPage = ref(0);
+const setsSize = ref(10);
+const setsTotalPages = ref(0);
+const setsTotalElements = ref(0);
+
+// Classes pagination
+const classesPage = ref(0);
+const classesSize = ref(10);
+const classesTotalPages = ref(0);
+const classesTotalElements = ref(0);
 
 let intervalId = null;
 
+// Updated fetchData to handle pagination
 const fetchData = async (token) => {
   try {
-    const [setsData, classesData] = await Promise.all([
-      getAllSets(token, search.value, page.value, size.value),
-      getAllClasses(token, search.value, page.value, size.value),
-    ]);
+    // Fetch sets with pagination
+    if (activeTab.value === "Flashcard sets" || activeTab.value === "Classes") {
+      const setsData = await getAllSets(token, search.value, setsPage.value, setsSize.value);
+      sets.value = setsData.content;
+      setsTotalPages.value = setsData.totalPages;
+      setsTotalElements.value = setsData.totalElements;
+    }
 
-    sets.value = setsData;
-    classes.value = classesData;
+    // Fetch classes with pagination
+    if (activeTab.value === "Flashcard sets" || activeTab.value === "Classes") {
+      const classesData = await getAllClasses(token, search.value, classesPage.value, classesSize.value);
+      classes.value = classesData.content;
+      classesTotalPages.value = classesData.totalPages;
+      classesTotalElements.value = classesData.totalElements;
+    }
   } catch (error) {
     console.error("Error fetching data:", error);
   }
+};
+
+// Pagination handlers
+const changeSetsPage = (newPage) => {
+  setsPage.value = newPage;
+  const token = localStorage.getItem("token");
+  fetchData(token);
+};
+
+const changeClassesPage = (newPage) => {
+  classesPage.value = newPage;
+  const token = localStorage.getItem("token");
+  fetchData(token);
 };
 
 onMounted(() => {
@@ -46,7 +77,6 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(intervalId); // dọn dẹp interval
 });
-
 
 const showClassModal = (classItem) => {
   classModalMode.value = true;
@@ -66,7 +96,9 @@ const switchTab = (tabName) => {
     search.value = "";
   } else {
     const token = localStorage.getItem("token");
-    page.value = 0;
+    // Reset to page 0 when switching tabs
+    setsPage.value = 0;
+    classesPage.value = 0;
     fetchData(token);
   }
 }
@@ -75,7 +107,8 @@ const switchTab = (tabName) => {
 const handleSearch = () => {
   const token = localStorage.getItem("token");
   // Reset về trang đầu tiên khi tìm kiếm
-  page.value = 0;
+  setsPage.value = 0;
+  classesPage.value = 0;
   fetchData(token);
 }
 
@@ -125,6 +158,27 @@ const showSearchBar = () => {
           <SetBox :set="set" />
         </div>
       </div>
+
+      <!-- Pagination for Sets -->
+      <div class="pagination" v-if="setsTotalPages > 1">
+        <button
+            class="pagination-button"
+            :disabled="setsPage === 0"
+            @click="changeSetsPage(setsPage - 1)"
+        >
+          &lt;
+        </button>
+        <span class="pagination-info">
+          Page {{ setsPage + 1 }} of {{ setsTotalPages }}
+        </span>
+        <button
+            class="pagination-button"
+            :disabled="setsPage >= setsTotalPages - 1"
+            @click="changeSetsPage(setsPage + 1)"
+        >
+          &gt;
+        </button>
+      </div>
     </div>
 
     <!-- Tab Classes -->
@@ -138,6 +192,27 @@ const showSearchBar = () => {
             <p> {{ classItem.numberOfMembers }} {{ classItem.numberOfMembers <= 1 ? 'member' : 'members' }}</p>
           </div>
         </div>
+      </div>
+
+      <!-- Pagination for Classes -->
+      <div class="pagination" v-if="classesTotalPages > 1">
+        <button
+            class="pagination-button"
+            :disabled="classesPage === 0"
+            @click="changeClassesPage(classesPage - 1)"
+        >
+          &lt;
+        </button>
+        <span class="pagination-info">
+          Page {{ classesPage + 1 }} of {{ classesTotalPages }}
+        </span>
+        <button
+            class="pagination-button"
+            :disabled="classesPage >= classesTotalPages - 1"
+            @click="changeClassesPage(classesPage + 1)"
+        >
+          &gt;
+        </button>
       </div>
     </div>
 
@@ -288,5 +363,33 @@ main {
 
 .card-wrapper {
   min-width: 250px;
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.pagination-button {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #666;
 }
 </style>

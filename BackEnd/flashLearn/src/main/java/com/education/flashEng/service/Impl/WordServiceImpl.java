@@ -18,6 +18,9 @@ import com.education.flashEng.util.TimeUtil;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -154,7 +157,7 @@ public class WordServiceImpl implements WordService {
     }
 
     @Override
-    public List<WordResponse> getCurrentUserWord(int page, int size) {
+    public Page<WordResponse> getCurrentUserWord(Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<StudySessionEntity> studySessionEntities = user.getStudySessionEntityList();
 
@@ -176,9 +179,19 @@ public class WordServiceImpl implements WordService {
             }
         }
 
-        // Apply paging
-        int start = Math.min(page * size, wordResponses.size());
-        int end = Math.min(start + size, wordResponses.size());
-        return wordResponses.subList(start, end);
+        // Thực hiện phân trang trên danh sách đã lọc
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), wordResponses.size());
+
+        // Kiểm tra nếu start lớn hơn kích thước danh sách
+        if (start > wordResponses.size()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, wordResponses.size());
+        }
+
+        // Tạo sublist từ danh sách gốc theo offset và limit của pageable
+        List<WordResponse> pageContent = wordResponses.subList(start, end);
+
+        // Trả về đối tượng Page chứa nội dung đã phân trang
+        return new PageImpl<>(pageContent, pageable, wordResponses.size());
     }
 }

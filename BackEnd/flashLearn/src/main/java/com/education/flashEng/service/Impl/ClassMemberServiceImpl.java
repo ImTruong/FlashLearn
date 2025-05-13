@@ -10,8 +10,11 @@ import com.education.flashEng.repository.ClassMemberRepository;
 import com.education.flashEng.service.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 
 @Service
 public class ClassMemberServiceImpl implements ClassMemberService {
@@ -86,7 +89,7 @@ public class ClassMemberServiceImpl implements ClassMemberService {
     }
 
     @Override
-    public ClassMemberListReponse getAllMembers(Long classId, Integer page, Integer size) {
+    public ClassMemberListReponse getAllMembers(Long classId, Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         if (classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId()).isEmpty() && !user.getRoleEntity().getName().equals("ADMIN"))
             throw new AccessDeniedException("You are not a member of this class.");
@@ -102,9 +105,23 @@ public class ClassMemberServiceImpl implements ClassMemberService {
                                 .build())
                         .toList())
                 .build();
-        int start = Math.min(page * size, classMemberListReponse.getMemberList().size());
-        int end = Math.min(start + size, classMemberListReponse.getMemberList().size());
-        classMemberListReponse.setMemberList(classMemberListReponse.getMemberList().subList(start, end));
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), classMemberListReponse.getMemberList().size());
+
+        long totalElements = classMemberListReponse.getMemberList().size();
+        int totalPages = (int) Math.ceil((double) totalElements / pageable.getPageSize());
+
+        classMemberListReponse.setCurrentPage(pageable.getPageNumber());
+        classMemberListReponse.setPageSize(pageable.getPageSize());
+        classMemberListReponse.setTotalPages(totalPages);
+        classMemberListReponse.setTotalElements(totalElements);
+
+        if (start >= totalElements) {
+            classMemberListReponse.setMemberList(Collections.emptyList());
+        } else {
+            classMemberListReponse.setMemberList(classMemberListReponse.getMemberList().subList(start, end));
+        }
+
         return classMemberListReponse;
     }
 
@@ -140,7 +157,7 @@ public class ClassMemberServiceImpl implements ClassMemberService {
     }
 
     @Override
-    public ClassMemberListReponse searchMembers(Long classId, String name, int page, int size) {
+    public ClassMemberListReponse searchMembers(Long classId, String name, Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         if (classMemberRepository.findByClassEntityIdAndUserEntityId(classId, user.getId()).isEmpty() && !user.getRoleEntity().getName().equals("ADMIN"))
             throw new AccessDeniedException("You are not a member of this class.");
@@ -157,9 +174,23 @@ public class ClassMemberServiceImpl implements ClassMemberService {
                                 .build())
                         .toList())
                 .build();
-        int start = Math.min(page * size, classMemberListReponse.getMemberList().size());
-        int end = Math.min(start + size, classMemberListReponse.getMemberList().size());
-        classMemberListReponse.setMemberList(classMemberListReponse.getMemberList().subList(start, end));
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), classMemberListReponse.getMemberList().size());
+
+        long totalElements = classMemberListReponse.getMemberList().size();
+        int totalPages = (int) Math.ceil((double) totalElements / pageable.getPageSize());
+
+        classMemberListReponse.setCurrentPage(pageable.getPageNumber());
+        classMemberListReponse.setPageSize(pageable.getPageSize());
+        classMemberListReponse.setTotalPages(totalPages);
+        classMemberListReponse.setTotalElements(totalElements);
+
+        if (start >= totalElements) {
+            classMemberListReponse.setMemberList(Collections.emptyList());
+        } else {
+            classMemberListReponse.setMemberList(classMemberListReponse.getMemberList().subList(start, end));
+        }
+
         return classMemberListReponse;
     }
 }

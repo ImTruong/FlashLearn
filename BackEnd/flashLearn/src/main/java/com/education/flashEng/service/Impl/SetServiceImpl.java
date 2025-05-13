@@ -15,6 +15,9 @@ import com.education.flashEng.service.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -81,7 +84,7 @@ public class SetServiceImpl implements SetService {
     }
 
     @Override
-    public List<SetResponse> getOwnPublicAndPrivateSet(int page,int size) {
+    public Page<SetResponse> getOwnPublicAndPrivateSet(Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<SetEntity> publicSetEntities = setRepository.findAllByPrivacyStatusAndUserEntityId(AccessModifierType.getKeyfromValue("Public"), user.getId());
         List<SetEntity> privateSetEntities = setRepository.findAllByPrivacyStatusAndUserEntityId(
@@ -104,10 +107,10 @@ public class SetServiceImpl implements SetService {
             setResponses.add(s);
         }
         // Apply paging
-        int start = Math.min(page * size, setResponses.size());
-        int end = Math.min(start + size, setResponses.size());
-        setResponses = setResponses.subList(start, end);
-        return setResponses;
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), setResponses.size());
+        List<SetResponse> paginatedList = (start > setResponses.size()) ? Collections.emptyList() : setResponses.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, setResponses.size());
     }
 
     @Override
@@ -133,7 +136,7 @@ public class SetServiceImpl implements SetService {
     }
 
     @Override
-    public List<SetResponse> getSetByClassID(Long classID,int page,int size) {
+    public Page<SetResponse> getSetByClassID(Long classID, Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         ClassEntity classEntity = classRepository.findById(classID)
                 .orElseThrow(() -> new EntityNotFoundWithIdException("ClassEntity", classID.toString()));
@@ -156,11 +159,10 @@ public class SetServiceImpl implements SetService {
             setResponse.setNumberOfWords((long) wordListResponses.size());
             setResponses.add(setResponse);
         }
-        // Apply paging
-        int start = Math.min(page * size, setResponses.size());
-        int end = Math.min(start + size, setResponses.size());
-        setResponses = setResponses.subList(start, end);
-        return setResponses;
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), setResponses.size());
+        List<SetResponse> paginatedList = (start > setResponses.size()) ? Collections.emptyList() : setResponses.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, setResponses.size());
     }
 
     @Transactional
@@ -175,9 +177,6 @@ public class SetServiceImpl implements SetService {
         if(AccessModifierType.getKeyfromValue("Class").equals(updateSetRequest.getPrivacyStatus())){
             ClassEntity classEntity = classRepository.findById(updateSetRequest.getClassId())
                     .orElseThrow(() -> new EntityNotFoundWithIdException("ClassEntity", updateSetRequest.getClassId().toString()));
-            if(classEntity.getSetsEntityList().stream().anyMatch(setEntity1 -> setEntity1.getId().equals(setEntity.getId()))){
-                throw new IllegalArgumentException("Your set is already in class " + classEntity.getName());
-            }
             if(classSetRequestRepository.findBySetEntityId(setEntity.getId()) != null){
                 throw new IllegalArgumentException("Your set is already pending in class " + classEntity.getName());
             }
@@ -227,7 +226,7 @@ public class SetServiceImpl implements SetService {
     }
 
     @Override
-    public List<SetResponse> getRecentSet(int page, int size) {
+    public Page<SetResponse> getRecentSet(Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<StudySessionEntity> studySessionEntities = user.getStudySessionEntityList();
         studySessionEntities.sort(Comparator.comparing(StudySessionEntity::getCreatedAt).reversed());
@@ -248,15 +247,14 @@ public class SetServiceImpl implements SetService {
             s.setWordResponses(wordListResponses);
             setResponses.add(s);
         }
-
-        // Apply paging
-        int start = Math.min(page * size, setResponses.size());
-        int end = Math.min(start + size, setResponses.size());
-        return setResponses.subList(start, end);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), setResponses.size());
+        List<SetResponse> paginatedList = (start > setResponses.size()) ? Collections.emptyList() : setResponses.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, setResponses.size());
     }
 
     @Override
-    public List<SetResponse> findSetByName(Long classId, String name, int page, int size) {
+    public Page<SetResponse> findSetByName(Long classId, String name, Pageable pageable) {
         UserEntity currentUser = userService.getUserFromSecurityContext();
         List<SetEntity> setEntities = null;
         if (classId != null) {
@@ -298,14 +296,14 @@ public class SetServiceImpl implements SetService {
                     setResponses.add(s);
                 });
 
-        // Apply paging
-        int start = Math.min(page * size, setResponses.size());
-        int end = Math.min(start + size, setResponses.size());
-        return setResponses.subList(start, end);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), setResponses.size());
+        List<SetResponse> paginatedList = (start > setResponses.size()) ? Collections.emptyList() : setResponses.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, setResponses.size());
     }
 
     @Override
-    public List<SetResponse> getPublicSet(int page, int size) {
+    public Page<SetResponse> getPublicSet(Pageable pageable) {
         List<SetEntity> setEntities = setRepository.findAllByPrivacyStatus(AccessModifierType.getKeyfromValue("Public"));
         List<SetResponse> setResponses = new ArrayList<>();
         for (SetEntity setEntity : setEntities) {
@@ -320,11 +318,10 @@ public class SetServiceImpl implements SetService {
             s.setNumberOfWords((long) wordListResponses.size());
             setResponses.add(s);
         }
-
-        // Apply paging
-        int start = Math.min(page * size, setResponses.size());
-        int end = Math.min(start + size, setResponses.size());
-        return setResponses.subList(start, end);
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), setResponses.size());
+        List<SetResponse> paginatedList = (start > setResponses.size()) ? Collections.emptyList() : setResponses.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, setResponses.size());
     }
 
     @Override

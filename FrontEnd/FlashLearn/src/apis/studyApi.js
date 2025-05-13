@@ -20,11 +20,15 @@ export const createStudySession = async (token, studySessionData) => {
     }
 }
 
-export const getStudySessionByTime = async (token) => {
+export const getStudySessionByTime = async (token,page,size) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                page: page,
+                size: size
             }
         }
         const response = await axios.get('/study/time', config);
@@ -40,11 +44,15 @@ export const getStudySessionByTime = async (token) => {
     }
 }
 
-export const getStudySessionByWord = async (token) => {
+export const getStudySessionByWord = async (token,page,size) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                page: page,
+                size: size
             }
         }
         const response = await axios.get('/study/word', config);
@@ -60,11 +68,15 @@ export const getStudySessionByWord = async (token) => {
     }
 }
 
-export const getStudySessionBySpecificWord = async (token, wordId) => {
+export const getStudySessionBySpecificWord = async (token, wordId, page,size) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                page: page,
+                size: size
             }
         }
         const response = await axios.get(`/study/word/${wordId}`, config);
@@ -80,11 +92,15 @@ export const getStudySessionBySpecificWord = async (token, wordId) => {
     }
 }
 
-export const getStudySessionBySpecificTime = async (token, time) => {
+export const getStudySessionBySpecificTime = async (token, time, page, size) => {
     try {
         const config = {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                page: page,
+                size: size
             }
         }
         const response = await axios.get(`/study/time/${time}`, config);

@@ -7,10 +7,12 @@ import com.education.flashEng.service.ClassMemberService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/class/member")
@@ -21,9 +23,8 @@ public class ClassMemberController {
 
     @GetMapping("/list")
     public ResponseEntity<?> getMembers(@RequestParam @NotNull(message = "classId is required") Long classId,
-                                        @RequestParam int page,
-                                        @RequestParam int size) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Members Fetched Successfully", classMemberService.getAllMembers(classId,page,size));
+                                        Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Members Fetched Successfully", classMemberService.getAllMembers(classId,pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -55,9 +56,8 @@ public class ClassMemberController {
     @GetMapping("/search")
     public ResponseEntity<?> searchMembers(@RequestParam @NotNull(message = "classId is required") Long classId,
                                            @RequestParam String name,
-                                           @RequestParam int page,
-                                           @RequestParam int size) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Members Fetched Successfully", classMemberService.searchMembers(classId, name, page, size));
+                                           Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Members Fetched Successfully", classMemberService.searchMembers(classId, name, pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

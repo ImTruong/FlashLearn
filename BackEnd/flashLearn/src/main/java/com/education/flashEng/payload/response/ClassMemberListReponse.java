@@ -18,6 +18,11 @@ public class ClassMemberListReponse {
     private String className;
     private List<MemberInfo> memberList;
 
+    private int currentPage;
+    private int pageSize;
+    private int totalPages;
+    private long totalElements;
+
     @Data
     @Builder
     public static class MemberInfo {

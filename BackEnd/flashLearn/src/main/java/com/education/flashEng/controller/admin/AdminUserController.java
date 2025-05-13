@@ -4,9 +4,11 @@ import com.education.flashEng.payload.response.ApiResponse;
 import com.education.flashEng.service.UserService;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/admin/user")
@@ -18,10 +20,9 @@ public class AdminUserController {
 
     @GetMapping
     public ResponseEntity<?> getAllUsers(@RequestParam (required = false) String userName,
-                                             @RequestParam (required = false) String email,
-                                             @RequestParam (required = true) int page,
-                                             @RequestParam (required = true) int size) {
-        ApiResponse apiResponse = new ApiResponse(true, "Get All Users Successfully", userService.getAllUserDetailResponse(page, size, email, userName));
+                                         @RequestParam (required = false) String email,
+                                         Pageable pageable) {
+        ApiResponse apiResponse = new ApiResponse(true, "Get All Users Successfully", userService.getAllUserDetailResponse(pageable, email, userName));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
 

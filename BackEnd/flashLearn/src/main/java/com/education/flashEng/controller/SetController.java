@@ -7,9 +7,12 @@ import com.education.flashEng.service.SetService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+
 @RestController
 @RequestMapping("/set")
 public class SetController {
@@ -18,16 +21,14 @@ public class SetController {
     SetService setService;
 
     @GetMapping
-    public ResponseEntity<?> getOwnSets(@RequestParam (required = true) int page,
-                                        @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Own Set Successfully", setService.getOwnPublicAndPrivateSet(page,size));
+    public ResponseEntity<?> getOwnSets(Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Own Set Successfully", setService.getOwnPublicAndPrivateSet(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/public")
-    public ResponseEntity<?> getPublicSets(@RequestParam(required = true) int page,
-                                           @RequestParam(required = true) int size)  {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Public Sets Successfully", setService.getPublicSet(page, size));
+    public ResponseEntity<?> getPublicSets(Pageable pageable)  {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Public Sets Successfully", setService.getPublicSet(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -38,27 +39,24 @@ public class SetController {
     }
 
     @GetMapping("/recent")
-    public ResponseEntity<?> getRecentSets(@RequestParam (required = true) int page,
-                                           @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Recent Sets Successfully", setService.getRecentSet(page,size));
+    public ResponseEntity<?> getRecentSets(Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Recent Sets Successfully", setService.getRecentSet(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/class/{classId}")
     public ResponseEntity<?> getSetsOfClass(@PathVariable Long classId,
-                                            @RequestParam (required = true) int page,
-                                            @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Sets Of Class Successfully", setService.getSetByClassID(classId,page,size));
+                                            Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Sets Of Class Successfully", setService.getSetByClassID(classId,pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/search")
     public ResponseEntity<?> searchSets(@RequestParam (required = false) String name,
                                         @RequestParam (required = false) Long classId,
-                                        @RequestParam (required = true) int page,
-                                        @RequestParam (required = true) int size
+                                        Pageable pageable
     ) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Sets Fetched Successfully", setService.findSetByName(classId, name,page,size));
+        ApiResponse<?> response = new ApiResponse<>(true, "Sets Fetched Successfully", setService.findSetByName(classId, name,pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

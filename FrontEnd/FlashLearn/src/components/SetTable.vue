@@ -1,211 +1,228 @@
 <script setup>
-    import { ref, watch, defineEmits, defineProps, computed, onMounted } from 'vue';
-    import OverlayBackground from '../components/OverlayBackground.vue';
-    import ModifyCardModal from '../components/ModifyCardModal.vue';
-    import ImageCard from './ImageCard.vue';
-    import { saveSetInfo } from '@/apis/setApi';
-    import { deleteWord } from '@/apis/wordApi';
-    import { getCurrentUserClasses } from '@/apis/classApi';
+import { ref, watch, defineEmits, defineProps, computed, onMounted } from 'vue';
+import OverlayBackground from '../components/OverlayBackground.vue';
+import ModifyCardModal from '../components/ModifyCardModal.vue';
+import ImageCard from './ImageCard.vue';
+import { saveSetInfo } from '@/apis/setApi';
+import { deleteWord } from '@/apis/wordApi';
+import { getCurrentUserClasses } from '@/apis/classApi';
 
-    const emit = defineEmits(['close', 'save', 'update']);
-    const props = defineProps(['isEditMode', 'existingSet', 'classId', 'className', 'inClass']);
-    const visible = ref(true);
-    const setName = ref(props.isEditMode ? props.existingSet.name : '');
-    const rows = ref(props.isEditMode ? props.existingSet.wordResponses : [{ id: '', word: '', ipa: '', audio: '', definition: '', example: '', image: '' }]);
-    const selectedWords = ref([]);
-    const showSelectColumn = ref(false);
-    const showOptions = ref(false);
-    const selectedOption = ref(props.isEditMode ? props.existingSet.privacyStatus : (props.inClass ? 'CLASS' : 'PRIVATE'));
-    const dropdownRef = ref(null);
-    const isEditWord = ref(false);
-    const showModifyCardModal = ref(false);
-    const classId = ref((props.isEditMode && props.existingSet.privacyStatus === 'CLASS') || props.inClass ? props.classId : '');
-    const isSearchVisible = ref(false);
-    const searchTerm = ref('');
-    const editWord = ref(null);
-    const classSuggestions = ref([]);
-    const myClasses = ref([]);
-    const searchClass = ref(props.isEditMode && props.existingSet.privacyStatus === 'CLASS' ? localStorage.getItem('className') : (props.inClass ? props.className : ''));
-    const user = JSON.parse(localStorage.getItem('user'));
-    const showImg = ref(false);
-    const image = ref("");
-    const token = localStorage.getItem('token');
-    const page = ref(0);
-    const size = ref(10);
+const emit = defineEmits(['close', 'reload']);
+const props = defineProps(['isEditMode', 'existingSet', 'classId', 'className', 'inClass']);
+const visible = ref(true);
+const setName = ref(props.isEditMode ? props.existingSet.name : '');
+const rows = ref(props.isEditMode ? props.existingSet.wordResponses : [{ id: '', word: '', ipa: '', audio: '', definition: '', example: '', image: '' }]);
+const selectedWords = ref([]);
+const showSelectColumn = ref(false);
+const showOptions = ref(false);
+const selectedOption = ref(props.isEditMode ? props.existingSet.privacyStatus : (props.inClass ? 'CLASS' : 'PRIVATE'));
+const dropdownRef = ref(null);
+const isEditWord = ref(false);
+const showModifyCardModal = ref(false);
+const classId = ref((props.isEditMode && props.existingSet.privacyStatus === 'CLASS') || props.inClass ? props.classId : '');
+const isSearchVisible = ref(false);
+const searchTerm = ref('');
+const editWord = ref(null);
+const classSuggestions = ref([]);
+const myClasses = ref([]);
+const searchClass = ref(props.isEditMode && props.existingSet.privacyStatus === 'CLASS' ? localStorage.getItem('className') : (props.inClass ? props.className : ''));
+const user = JSON.parse(localStorage.getItem('user'));
+const showImg = ref(false);
+const image = ref("");
+const token = localStorage.getItem('token');
+const page = ref(0);
+const size = ref(10);
 
-    onMounted(async() => {
-        myClasses.value = await getCurrentUserClasses(token, page.value, size.value);
-        
-    });
+// Thêm biến isSetCreated để theo dõi xem set đã được tạo hay chưa
+const isSetCreated = ref(props.isEditMode);
+// Biến lưu ID của set khi tạo mới
+const currentSetId = ref(props.isEditMode && props.existingSet ? props.existingSet.id : null);
 
-    const saveSetInfoInfo = async () => {
-        showOptions.value = false;
-        const payload = {
-            setId: props.isEditMode ? props.existingSet.id : null,
-            name: setName.value,
-            description: "My set",
-            privacyStatus: selectedOption.value,
-            classId: classId.value || null
-        };
-        try {
-            const response = await saveSetInfo(payload, token, props.isEditMode);
-            alert(response.message);
-            if (props.isEditMode) {
-                emit('update', response.data);
-            } else {
-                emit('save', response.data);
-            }
-        } catch (error) {
-            alert(error);
-            console.log(error);
-        }
-    };
+onMounted(async() => {
+  myClasses.value = await getCurrentUserClasses(token, page.value, size.value);
 
-    const addNewWord = (newWord) => {
+});
 
-            rows.value.push(newWord);
+const saveSetInfoInfo = async () => {
+  showOptions.value = false;
+  const payload = {
+    setId: currentSetId.value || (props.isEditMode ? props.existingSet.id : null),
+    name: setName.value,
+    description: "My set",
+    privacyStatus: selectedOption.value,
+    classId: classId.value || null
+  };
+  try {
+    const response = await saveSetInfo(payload, token, isSetCreated.value);
+    emit("reload");
+    alert(response.message);
 
-    };
+    // Cập nhật trạng thái sau khi lưu thành công
+    isSetCreated.value = true;
 
-    const removeRow = async () => {
-        if (selectedWords.value.length > 0) {
-            for (const wordId of selectedWords.value) {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await deleteWord(wordId, token);
-                    rows.value = rows.value.filter(row => row.id !== wordId);
-                    alert(response.message);
-                } catch (error) {
-                    alert(error);
-                    console.log(error);
-                }
-            }
-            selectedWords.value = [];
-        }
-        emit('update', rows.value);
-    };
+    // Lưu ID của set nếu là lần đầu tạo
+    if (!currentSetId.value) {
+      currentSetId.value = response.data.id;
+    }
 
-    const closeForm = () => {
-        emit('close');
-        visible.value = false;
-    };
+  } catch (error) {
+    alert(error);
+    console.log(error);
+  }
+};
 
-    const toggleSelectWord = (row) => {
-        const index = selectedWords.value.indexOf(row.id);
-        if (index === -1) {
-            selectedWords.value.push(row.id);
-        } else {
-            selectedWords.value.splice(index, 1);
-        }
-    };
+const addNewWord = (newWord) => {
+  rows.value.push(newWord);
+  emit("reload");
+};
 
-    const toggleSelectColumn = () => {
-        showOptions.value = false;
-        showSelectColumn.value = !showSelectColumn.value;
-    };
+const removeRow = async () => {
+  if (selectedWords.value.length > 0) {
+    for (const wordId of selectedWords.value) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await deleteWord(wordId, token);
+        rows.value = rows.value.filter(row => row.id !== wordId);
+        alert(response.message);
+      } catch (error) {
+        alert(error);
+        console.log(error);
+      }
+    }
+    selectedWords.value = [];
+  }
+  emit('update', rows.value);
+  emit("reload");
+};
 
-    const toggleOptions = () => {
-        showOptions.value = !showOptions.value;
-    };
+const closeForm = () => {
+  emit('close');
+  visible.value = false;
+};
 
-    const selectOption = (option) => {
-        selectedOption.value = option;
-    };
+const toggleSelectWord = (row) => {
+  const index = selectedWords.value.indexOf(row.id);
+  if (index === -1) {
+    selectedWords.value.push(row.id);
+  } else {
+    selectedWords.value.splice(index, 1);
+  }
+};
 
-    const openModifyCardModal = () => {
-        showOptions.value = false;
-        // if (props.isEditMode && props.existingSet.userDetailResponse.username !== user.username) {
-        //     alert("You aren't authorized to modify this set!");
-        //     return;
-        // }
-        if (!props.isEditMode && !setName.value) {
-            alert("Save set before add words.");
-            return;
-        }
-        showModifyCardModal.value = true;
-        visible.value = false;
-    };
+const toggleSelectColumn = () => {
+  showOptions.value = false;
+  showSelectColumn.value = !showSelectColumn.value;
+};
 
-    const closeModifyCardModal = () => {
-        isEditWord.value = false;
-        visible.value = true;
-        showModifyCardModal.value = false;
-    };
+const toggleOptions = () => {
+  showOptions.value = !showOptions.value;
+};
 
-    const handleSaveSetInfoInfo = () => {
-        if (setName.value.trim()) {
-            if (selectedOption.value === 'CLASS' && !classId) {
-                alert('Please enter classname');
-                return;
-            }
-            saveSetInfoInfo();
-        } else {
-            alert("Please enter setname");
-        }
-    };
+const selectOption = (option) => {
+  selectedOption.value = option;
+};
 
-    const toggleSearch = () => {
-        showOptions.value = false;
-        isSearchVisible.value = !isSearchVisible.value;
-    };
+const openModifyCardModal = () => {
+  showOptions.value = false;
+  // if (props.isEditMode && props.existingSet.userDetailResponse.username !== user.username) {
+  //     alert("You aren't authorized to modify this set!");
+  //     return;
+  // }
+  if (!isSetCreated.value && !setName.value) {
+    alert("Save set before add words.");
+    return;
+  }
+  showModifyCardModal.value = true;
+  visible.value = false;
+};
 
-    const EditRow = (row) => {
-        isEditWord.value = true;
-        editWord.value = row;
-        openModifyCardModal();
-    };
+const closeModifyCardModal = () => {
+  isEditWord.value = false;
+  visible.value = true;
+  showModifyCardModal.value = false;
+};
 
-    const filteredRows = computed(() => {
-        if (!isSearchVisible.value || !searchTerm.value.trim()) {
-            return rows.value;
-        }
-        return rows.value.filter(row => row.word.toLowerCase().includes(searchTerm.value.toLowerCase().trim()));
-    });
+const handleSaveSetInfoInfo = () => {
+  if (setName.value.trim()) {
+    if (selectedOption.value === 'CLASS' && !classId) {
+      alert('Please enter classname');
+      return;
+    }
+    saveSetInfoInfo();
+  } else {
+    alert("Please enter setname");
+  }
+};
 
-    const updateWord = (updatedWord) => {
-        const index = rows.value.findIndex(row => row.id === updatedWord.id);
-        if (index !== -1) {
-            rows.value[index] = updatedWord;
-        } else {
-            console.error('Word not found in rows');
-        }
-        emit('update', rows.value);
-    };
+const toggleSearch = () => {
+  showOptions.value = false;
+  isSearchVisible.value = !isSearchVisible.value;
+};
 
-    watch(() => props.existingSet, (newExistingSet) => {
-        if (newExistingSet && newExistingSet.words) {
-            setName.value = newExistingSet.name;
-            rows.value = newExistingSet.words;
-            selectedOption.value = newExistingSet.privacyStatus || '';
-            classId.value = newExistingSet.privacyStatus === 'CLASS' ? props.classId : '';
-        }
-    }, { deep: true });
+const EditRow = (row) => {
+  isEditWord.value = true;
+  editWord.value = row;
+  openModifyCardModal();
+};
 
-    watch(searchClass, () => {
-        classSuggestions.value = [];
-        for (let i = 0; i < myClasses.value.length; i++) {
-            if (myClasses.value[i].className.toLowerCase === searchClass.value.toLowerCase) {
-                classSuggestions.value.push(myClasses.value[i]);
-            }
-        }
-    });
+const filteredRows = computed(() => {
+  if (!isSearchVisible.value || !searchTerm.value.trim()) {
+    return rows.value;
+  }
+  return rows.value.filter(row => row.word.toLowerCase().includes(searchTerm.value.toLowerCase().trim()));
+});
 
-    const selectClass = (classItem) => {
-        searchClass.value = classItem.className;
-        classId.value = classItem.classId;
-        classSuggestions.value = [];
-    };
+const updateWord = (updatedWord) => {
+  const index = rows.value.findIndex(row => row.id === updatedWord.id);
+  if (index !== -1) {
+    rows.value[index] = updatedWord;
+  } else {
+    console.error('Word not found in rows');
+  }
+  emit('update', rows.value);
+  emit("reload");
+};
 
-    const openImage = (img) => {
-        showImg.value = true;
-        image.value = img;
-        visible.value = false;
-    };
+watch(() => props.existingSet, (newExistingSet) => {
+  if (newExistingSet && newExistingSet.words) {
+    setName.value = newExistingSet.name;
+    rows.value = newExistingSet.words;
+    selectedOption.value = newExistingSet.privacyStatus || '';
+    classId.value = newExistingSet.privacyStatus === 'CLASS' ? props.classId : '';
 
-    const closeImage = () => {
-        showImg.value = false;
-        visible.value = true;
-    };
+    // Cập nhật biến kiểm tra set đã được tạo
+    if (newExistingSet.id) {
+      isSetCreated.value = true;
+      currentSetId.value = newExistingSet.id;
+    }
+  }
+}, { deep: true });
+
+watch(searchClass, () => {
+  classSuggestions.value = [];
+  for (let i = 0; i < myClasses.value.length; i++) {
+    if (myClasses.value[i].className.toLowerCase === searchClass.value.toLowerCase) {
+      classSuggestions.value.push(myClasses.value[i]);
+    }
+  }
+});
+
+const selectClass = (classItem) => {
+  searchClass.value = classItem.className;
+  classId.value = classItem.classId;
+  classSuggestions.value = [];
+};
+
+const openImage = (img) => {
+  showImg.value = true;
+  image.value = img;
+  visible.value = false;
+};
+
+const closeImage = () => {
+  showImg.value = false;
+  visible.value = true;
+};
 </script>
 
 <template>
@@ -307,17 +324,17 @@
             </button>
         </div>
     </div>
-    <ModifyCardModal 
-        :setName="setName"         
-        :setId="props.existingSet.id" 
+    <ModifyCardModal
+        :setName="setName"
+        :setId="props.existingSet.id"
         :word="isEditWord ? editWord : null"
-        v-if="showModifyCardModal" 
+        v-if="showModifyCardModal"
         @update="updateWord"
-        @close="closeModifyCardModal" 
+        @close="closeModifyCardModal"
         @save="addNewWord">
     </ModifyCardModal>
     <ImageCard :Overlay_background ="showImg" :image="image" v-if="showImg" @close="closeImage"></ImageCard>
-</template>  
+</template>
 
 <style scoped>
     .set-window {
@@ -332,13 +349,13 @@
         width: 60%;
         z-index: 11;
     }
-  
+
     .set-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-  
+
     .set-header img {
         margin-left: 10px;
     }
@@ -355,7 +372,7 @@
         display: flex;
         align-items: center;
     }
-    
+
     .option-button {
         display: flex;
         align-items: center;
@@ -407,7 +424,7 @@
         min-width: 150px;
         max-width: 300px;
     }
-  
+
     .table-container {
         max-height: 300px;
         overflow-y: auto;
@@ -464,7 +481,7 @@
     .set-table th:not(.select-column, .edit) {
         width: calc((100% - 20px) / 5);
     }
-  
+
     .actions {
         display: flex;
         justify-content: space-around;
@@ -502,39 +519,39 @@
     }
 
     .options-dropdown {
-        position: absolute; 
+        position: absolute;
         background-color: white;
         border: 1px solid #ccc;
         border-radius: 4px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        margin-top: 5px; 
-        z-index: 1001; 
+        margin-top: 5px;
+        z-index: 1001;
     }
-    
+
     .option-button {
-        display: flex; 
-        align-items: center; 
+        display: flex;
+        align-items: center;
         padding: 10px;
         border: none;
         background: none;
-        width: 100%; 
-        text-align: left; 
+        width: 100%;
+        text-align: left;
         cursor: pointer;
     }
-    
+
     .option-button:hover {
         background-color: #f0f0f0;
     }
-    
+
     .option-icon {
-        width: 20px; 
-        height: 20px; 
-        margin-right: 15px; 
+        width: 20px;
+        height: 20px;
+        margin-right: 15px;
         cursor: pointer;
     }
-    
+
     .checkmark {
-        color:rgb(218, 87, 87); 
-        margin-left: 15px; 
+        color:rgb(218, 87, 87);
+        margin-left: 15px;
     }
 </style>

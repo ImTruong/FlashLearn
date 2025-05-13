@@ -8,13 +8,13 @@ import com.education.flashEng.service.ClassService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/class")
-
 public class ClassController {
 
     @Autowired
@@ -28,17 +28,14 @@ public class ClassController {
 
     @GetMapping
     public ResponseEntity<?> findClassByName(@RequestParam @NotNull(message = "Class name is required") String name,
-                                             @RequestParam (required = true) int page,
-                                             @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.findClassByName(name, page, size));
+                                             Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.findClassByName(name, pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
     @GetMapping("/user")
-    public ResponseEntity<?> getAllCurrentUserClasses(@RequestParam (required = true) int page,
-                                                       @RequestParam (required = true) int size) {
-        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.getAllCurrentUserClasses(page, size));
+    public ResponseEntity<?> getAllCurrentUserClasses(Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.getAllCurrentUserClasses(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -59,7 +56,4 @@ public class ClassController {
         ApiResponse apiResponse = new ApiResponse(true, "Delete Class Successfully", classService.deleteClassById(classId));
         return new ResponseEntity<>(apiResponse, HttpStatus.OK);
     }
-
-
-
 }

@@ -4,19 +4,21 @@ import com.education.flashEng.entity.SetEntity;
 import com.education.flashEng.payload.request.CreateSetRequest;
 import com.education.flashEng.payload.request.UpdateSetRequest;
 import com.education.flashEng.payload.response.SetResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
 public interface SetService {
     SetResponse createSet(CreateSetRequest createSetRequest);
-    List<SetResponse> getOwnPublicAndPrivateSet(int page,int size);
+    Page<SetResponse> getOwnPublicAndPrivateSet(Pageable pageable);
     List<SetResponse> getPrivateSet();
-    List<SetResponse> getSetByClassID(Long classID,int page, int size);
+    Page<SetResponse> getSetByClassID(Long classID, Pageable pageable);
     boolean updateSet(UpdateSetRequest updateSetRequest);
     boolean deleteSetById(Long setID);
-    List<SetResponse> getRecentSet(int page,int size);
-    List<SetResponse> findSetByName(Long classId, String name,int page, int size);
+    Page<SetResponse> getRecentSet(Pageable pageable);
+    Page<SetResponse> findSetByName(Long classId, String name, Pageable pageable);
 
-    List<SetResponse> getPublicSet(int page,int size);
+    Page<SetResponse> getPublicSet(Pageable pageable);
     boolean updateSetPrivacyToPrivateByEntity(SetEntity setEntity);
 }

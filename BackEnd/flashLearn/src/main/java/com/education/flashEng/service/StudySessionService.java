@@ -6,21 +6,22 @@ import com.education.flashEng.payload.response.StatisticBySpecificTimeResponse;
 import com.education.flashEng.payload.response.StatisticBySpecificWordResponse;
 import com.education.flashEng.payload.response.StatisticByTimeResponse;
 import com.education.flashEng.payload.response.StatisticByWordResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public interface StudySessionService {
     boolean createStudySession(StudySessionRequest studySessionRequest);
 
-    List<StatisticByTimeResponse> getUsersStudyStatisticByTime(int page, int size);
+    Page<StatisticByTimeResponse> getUsersStudyStatisticByTime(Pageable pageable);
 
-    List<StatisticByWordResponse> getUsersStudyStatisticByWord(int page, int size);
+    Page<StatisticByWordResponse> getUsersStudyStatisticByWord(Pageable pageable);
 
-    List<StatisticBySpecificTimeResponse> getUsersStudyStaticBySpecificTime(LocalDate time, int page, int size);
+    Page<StatisticBySpecificTimeResponse> getUsersStudyStatisticBySpecificTime(LocalDate time, Pageable pageable);
 
-    List<StatisticBySpecificWordResponse> getUsersStudyStaticBySpecificWord(Long wordId, int page, int size);
+    Page<StatisticBySpecificWordResponse> getUsersStudyStatisticBySpecificWord(Long wordId, Pageable pageable);
 
     LocalDateTime getReminderTimeBasedOnLevel(StudySessionEntity studySessionEntity, LocalDateTime startTime);
 }

@@ -5,6 +5,7 @@ import com.education.flashEng.payload.response.NotificationResponse;
 import com.education.flashEng.service.NotificationService;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +20,8 @@ public class NotificationController {
     private NotificationService notificationService;
 
     @GetMapping("/user")
-    public ResponseEntity<?> getAllCurrentUserNotifications(@RequestParam (required = true) int page,
-                                                            @RequestParam (required = true) int size) {
-        ApiResponse<List<NotificationResponse>> response = new ApiResponse<>(true,"All Notifications Fetched Successfully", notificationService.getAllCurrentUserNotifications(page,size));
+    public ResponseEntity<?> getAllCurrentUserNotifications(Pageable pageable) {
+        ApiResponse<?> response = new ApiResponse<>(true,"All Notifications Fetched Successfully", notificationService.getAllCurrentUserNotifications(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

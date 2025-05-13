@@ -5,12 +5,13 @@ import com.education.flashEng.exception.EntityNotFoundWithIdException;
 import com.education.flashEng.payload.response.NotificationResponse;
 import com.education.flashEng.repository.NotificationMetaDataRepository;
 import com.education.flashEng.repository.NotificationRepository;
-import com.education.flashEng.service.ClassInvitationService;
 import com.education.flashEng.service.NotificationService;
 import com.education.flashEng.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -228,7 +229,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponse> getAllCurrentUserNotifications(int page, int size) {
+    public Page<NotificationResponse> getAllCurrentUserNotifications(Pageable pageable) {
         UserEntity user = userService.getUserFromSecurityContext();
         List<NotificationEntity> notificationEntityList = user.getNotificationsEntityList();
 
@@ -258,10 +259,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .sorted(Comparator.comparing(notificationResponse -> notificationResponse.getCreatedAt(), Comparator.reverseOrder()))
                 .toList();
 
-        // Apply paging
-        int start = Math.min(page * size, notifications.size());
-        int end = Math.min(start + size, notifications.size());
-        return notifications.subList(start, end);
+        int start = Math.min(pageable.getPageNumber() * pageable.getPageSize(), notifications.size());
+        int end = Math.min(start + pageable.getPageSize(), notifications.size());
+        List<NotificationResponse> paginatedList = (start > notifications.size()) ? List.of() : notifications.subList(start, end);
+        return new PageImpl<>(paginatedList, pageable, notifications.size());
     }
 
     @Transactional

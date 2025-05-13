@@ -6,6 +6,7 @@ import com.education.flashEng.payload.response.ApiResponse;
 import com.education.flashEng.service.WordService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +32,8 @@ public class WordController {
     }
 
     @GetMapping("/userCurrent")
-    public ResponseEntity<?> getCurrentUserWord(@RequestParam (required = true) int page,
-                                                @RequestParam (required = true) int size){
-        ApiResponse<?> response = new ApiResponse<>(true, "Get Current Reminder Words Successfully", wordService.getCurrentUserWord(page,size));
+    public ResponseEntity<?> getCurrentUserWord(Pageable pageable){
+        ApiResponse<?> response = new ApiResponse<>(true, "Get Current Reminder Words Successfully", wordService.getCurrentUserWord(pageable));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
