@@ -21,7 +21,15 @@
   };
 
   onMounted(async () => {
-    await showCurrentUser();
+    const token = localStorage.getItem('token');
+    if (token == null){
+      console.log(token)
+      alert('Login for to use this feature');
+      window.location.href = '/login';
+      return;
+    }
+
+    else await showCurrentUser();
   });
 
   const updateProfile = async () => {

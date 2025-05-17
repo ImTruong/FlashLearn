@@ -173,15 +173,13 @@ export const rejectSetRequest = async (requestId, token) => {
     }
 };
 
-export const getAllPublicSet = async (token,page,size) => {
+export const getAllPublicSet = async (page,size,name) => {
     try {
         const response = await axios.get('/set/public', {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
             params: {
                 page: page,
-                size: size
+                size: size,
+                name: name
             }
         });
         return response.data.data;

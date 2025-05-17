@@ -213,6 +213,11 @@ const handleComplete = () => {
 
 // Khởi tạo
 onMounted(() => {
+  if (!token) {
+    alert('Login to use this feature');
+    window.location.href = '/login';
+    return;
+  }
   fetchCards();
 });
 </script>

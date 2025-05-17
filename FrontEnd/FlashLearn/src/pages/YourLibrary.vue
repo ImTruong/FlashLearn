@@ -66,6 +66,11 @@ const handleReload = async () => {
 };
 
 onMounted(() => {
+  if (token == null) {
+    alert('Login to use this feature');
+    window.location.href = '/login';
+    return;
+  }
   fetchSets();
   fetchClasses();
 });

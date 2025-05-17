@@ -19,6 +19,6 @@ public interface SetService {
     Page<SetResponse> getRecentSet(Pageable pageable);
     Page<SetResponse> findSetByName(Long classId, String name, Pageable pageable);
 
-    Page<SetResponse> getPublicSet(Pageable pageable);
+    Page<SetResponse> getPublicSet(Pageable pageable, String name);
     boolean updateSetPrivacyToPrivateByEntity(SetEntity setEntity);
 }

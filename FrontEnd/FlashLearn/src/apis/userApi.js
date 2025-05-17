@@ -302,4 +302,19 @@ export const reActivateUser = async (token,userId) => {
     }
 }
 
+export const getCurrentUserRole = async (token) => {
+    try {
+        const response = await axios.get('/user/role', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        // Trả về giá trị đúng - nằm trong response.data.data
+        return response.data.data;
+    } catch (error) {
+        console.error("Lỗi khi lấy vai trò người dùng:", error);
+        throw error;
+    }
+};
+
  

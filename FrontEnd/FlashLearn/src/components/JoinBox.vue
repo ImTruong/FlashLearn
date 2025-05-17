@@ -16,6 +16,11 @@
     }
 
     const join_button = async () => {
+        if (!token) {
+            window.location.href = '/login';
+            alert('Login for to use this feature');
+            return;
+        }
         if (joinRevokeMode.value === "Join") {
             try {
                 const user = JSON.parse(localStorage.getItem('user'));

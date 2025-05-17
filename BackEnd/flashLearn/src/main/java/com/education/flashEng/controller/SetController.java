@@ -27,8 +27,9 @@ public class SetController {
     }
 
     @GetMapping("/public")
-    public ResponseEntity<?> getPublicSets(Pageable pageable)  {
-        ApiResponse<?> response = new ApiResponse<>(true, "Get All Public Sets Successfully", setService.getPublicSet(pageable));
+    public ResponseEntity<?> getPublicSets( @RequestParam (required = false) String name,
+                                            Pageable pageable)  {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get All Public Sets Successfully", setService.getPublicSet(pageable,name));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

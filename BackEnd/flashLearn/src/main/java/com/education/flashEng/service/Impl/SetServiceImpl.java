@@ -303,8 +303,20 @@ public class SetServiceImpl implements SetService {
     }
 
     @Override
-    public Page<SetResponse> getPublicSet(Pageable pageable) {
-        List<SetEntity> setEntities = setRepository.findAllByPrivacyStatus(AccessModifierType.getKeyfromValue("Public"));
+    public Page<SetResponse> getPublicSet(Pageable pageable, String name) {
+        List<SetEntity> setEntities;
+
+        // Kiểm tra nếu name rỗng hoặc null, lấy tất cả set công khai
+        if (name == null || name.trim().isEmpty()) {
+            setEntities = setRepository.findAllByPrivacyStatus(AccessModifierType.getKeyfromValue("Public"));
+        } else {
+            // Nếu có name, tìm kiếm theo tên với LIKE
+            setEntities = setRepository.findAllByPrivacyStatusAndNameLike(
+                    AccessModifierType.getKeyfromValue("Public"),
+                    "%" + name + "%"
+            );
+        }
+
         List<SetResponse> setResponses = new ArrayList<>();
         for (SetEntity setEntity : setEntities) {
             SetResponse s = new SetResponse();
@@ -318,6 +330,7 @@ public class SetServiceImpl implements SetService {
             s.setNumberOfWords((long) wordListResponses.size());
             setResponses.add(s);
         }
+
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), setResponses.size());
         List<SetResponse> paginatedList = (start > setResponses.size()) ? Collections.emptyList() : setResponses.subList(start, end);

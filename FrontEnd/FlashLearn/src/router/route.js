@@ -9,6 +9,8 @@ import HomeView from "@/pages/HomeView.vue";
 import Review from "@/pages/Review.vue";
 import Statistics from "@/pages/Statistics.vue";
 import Admin from "@/pages/Admin.vue";
+import Unauthorized from "@/pages/Unauthorized.vue";
+import { getCurrentUserRole } from "@/apis/userApi.js";
 
 
 const router = createRouter({
@@ -63,9 +65,64 @@ const router = createRouter({
         {
             path: "/management",
             name: "management",
-            component: Admin
+            component: Admin,
+            meta: {
+                requiresAuth: true,
+                requiresAdmin: true
+            }
+        },
+        {
+            path: "/unauthorized",
+            name: "unauthorized",
+            component: Unauthorized
         }
     ]
+})
+
+// Navigation Guard - kiểm tra trước khi chuyển hướng
+router.beforeEach(async (to, from, next) => {
+    // Kiểm tra xem route có yêu cầu xác thực không
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        // Kiểm tra token đăng nhập
+        const token = localStorage.getItem('token')
+
+        if (!token) {
+            // Nếu không có token, chuyển hướng đến trang đăng nhập
+            next({
+                path: '/login',
+                query: { redirect: to.fullPath }  // Lưu lại đường dẫn để chuyển hướng sau khi đăng nhập
+            })
+            return
+        }
+
+        // Nếu route yêu cầu quyền admin
+        if (to.matched.some(record => record.meta.requiresAdmin)) {
+            try {
+                // Lấy thông tin về vai trò của người dùng
+                const userRole = await getCurrentUserRole(token)
+
+                // Hoặc kiểm tra từ API (giả sử bạn có một hàm checkIsAdmin)
+                // const isAdmin = await checkIsAdmin(token)
+
+                if (userRole == 'ADMIN') {
+                    // Nếu là admin, cho phép truy cập
+                    next()
+                } else {
+                    // Nếu không phải admin, chuyển hướng về trang không có quyền
+                    next({ path: '/unauthorized' })
+                }
+            } catch (error) {
+                console.error('Lỗi khi kiểm tra quyền admin:', error)
+                next({ path: '/login' })
+            }
+        } else {
+            // Nếu route chỉ yêu cầu đăng nhập (không yêu cầu quyền admin)
+            next()
+        }
+    } else {
+        // Nếu route không yêu cầu xác thực, cho phép truy cập
+        next()
+    }
 })
 
 export default router

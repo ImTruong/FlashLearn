@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import Header from "@/components/Header.vue";
 import SetBox from "@/components/SetBox.vue";
 import { useRouter } from "vue-router";
@@ -28,17 +28,33 @@ const publicSetsSize = ref(6);
 const librarySetsSize = ref(6);
 const isLoadingRecent = ref(false);
 const isLoadingPublic = ref(false);
+const isGuestMode = ref(false); // Thêm trạng thái chế độ khách
+
+// Kiểm tra token và đặt chế độ khách nếu cần
+const checkAuthStatus = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    isGuestMode.value = true;
+    console.log("Guest mode activated: No token found");
+  }
+  return token;
+};
 
 const fetchUserInfo = async (token) => {
   try {
     const user = await getCurrentUser(token);
     localStorage.setItem("user", JSON.stringify(user));
+    isGuestMode.value = false; // Đặt lại chế độ khách khi lấy thông tin user thành công
   } catch (error) {
     console.error("Error fetching user info:", error);
+    isGuestMode.value = true; // Kích hoạt chế độ khách khi có lỗi
+    console.log("Guest mode activated: User API error");
   }
 };
 
 const fetchRecentSet = async (token, page) => {
+  if (isGuestMode.value) return; // Không gọi API nếu đang ở chế độ khách
+
   try {
     isLoadingRecent.value = true;
     const response = await getRecentSet(token, page, recentSetsSize.value);
@@ -46,7 +62,10 @@ const fetchRecentSet = async (token, page) => {
     recentSetsPage.value = page;
   } catch (error) {
     console.error("Error fetching recent sets:", error);
-    alert("Failed to load recent sets. Please try again.");
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      isGuestMode.value = true; // Kích hoạt chế độ khách khi token hết hạn
+      console.log("Guest mode activated: Recent sets API unauthorized");
+    }
   } finally {
     isLoadingRecent.value = false;
   }
@@ -55,7 +74,7 @@ const fetchRecentSet = async (token, page) => {
 const fetchPublicSet = async (token, page) => {
   try {
     isLoadingPublic.value = true;
-    const response = await getAllPublicSet(token, page, publicSetsSize.value);
+    const response = await getAllPublicSet(page, publicSetsSize.value);
     publicSetsData.value = response;
     publicSetsPage.value = page;
   } catch (error) {
@@ -67,36 +86,73 @@ const fetchPublicSet = async (token, page) => {
 };
 
 const fetchLibrarySet = async (token) => {
+  if (isGuestMode.value) return; // Không gọi API nếu đang ở chế độ khách
+
   try {
     const response = await getLibrarySet(token, librarySetsPage.value, librarySetsSize.value);
     sets.value = response.content;
   } catch (error) {
     console.error("Error fetching library sets:", error);
-    alert("Failed to load library sets. Please try again.");
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      isGuestMode.value = true; // Kích hoạt chế độ khách khi token hết hạn
+      console.log("Guest mode activated: Library API unauthorized");
+    }
   }
 };
 
 const fetchAllData = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) return;
+  const token = checkAuthStatus();
+  if (!token) {
+    // Nếu không có token, chỉ tải dữ liệu public
+    await fetchPublicSet(null, publicSetsPage.value);
+    return;
+  }
 
-  await Promise.all([
-    fetchLibrarySet(token),
-    fetchUserInfo(token),
-    fetchRecentSet(token, recentSetsPage.value),
-    fetchPublicSet(token, publicSetsPage.value),
-  ]);
+  try {
+    await Promise.all([
+      fetchUserInfo(token),
+      fetchPublicSet(token, publicSetsPage.value)
+    ]);
+
+    // Chỉ tải dữ liệu riêng tư nếu không ở chế độ khách
+    if (!isGuestMode.value) {
+      await Promise.all([
+        fetchLibrarySet(token),
+        fetchRecentSet(token, recentSetsPage.value)
+      ]);
+    }
+  } catch (error) {
+    console.error("Error in fetchAllData:", error);
+    // Nếu có lỗi chung, đặt chế độ khách
+    isGuestMode.value = true;
+    console.log("Guest mode activated: General error in data fetching");
+    // Đảm bảo vẫn tải dữ liệu công cộng
+    await fetchPublicSet(null, publicSetsPage.value);
+  }
 };
+
+// Tính toán message hiển thị cho khách
+const guestMessage = computed(() => {
+  return isGuestMode.value ? "You are browsing as a guest. Sign in to access all features." : "";
+});
 
 onMounted(() => {
   fetchAllData();
 });
 
 const goToStudy = () => {
+  if (isGuestMode.value) {
+    router.push("/login");
+    return;
+  }
   router.push("/review");
 };
 
 const goToLibrary = () => {
+  if (isGuestMode.value) {
+    router.push("/login");
+    return;
+  }
   localStorage.setItem("libraryTab", "FlashSetBox sets");
   router.push("/library");
 };
@@ -106,7 +162,7 @@ const changePage = async (type, page) => {
   if (page < 0 || page >= (type === "recent" ? recentSetsData.value.totalPages : publicSetsData.value.totalPages)) return;
 
   const token = localStorage.getItem("token");
-  if (type === "recent") {
+  if (type === "recent" && !isGuestMode.value) {
     await fetchRecentSet(token, page);
   } else if (type === "public") {
     await fetchPublicSet(token, page);
@@ -133,92 +189,108 @@ const getPageNumbers = (totalPages, currentPage) => {
 
 <template>
   <Header
-      :recentSets="recentSetsData.content"
-      :ownerSets="sets"
+      :recentSets="isGuestMode ? [] : recentSetsData.content"
+      :ownerSets="isGuestMode ? [] : sets"
       :publicSets="publicSetsData.content"
+      :isGuestMode="isGuestMode"
       @reload="fetchAllData"
   />
   <div class="home">
-    <div class="review-box" @click="goToStudy">
+    <!-- Guest mode message -->
+    <div v-if="isGuestMode" class="guest-message">
+      <p>{{ guestMessage }}</p>
+      <div class="guest-buttons">
+        <button @click="router.push('/login')" class="login-btn">Login</button>
+        <button @click="router.push('/signup')" class="register-btn">Register</button>
+      </div>
+    </div>
+
+    <!-- Review box - visible only for logged-in users -->
+    <div v-if="!isGuestMode" class="review-box" @click="goToStudy">
       <p>It's time to review...</p>
     </div>
 
-    <!-- Section Recent -->
-    <h1 class="section-header">
-      <span class="section-title">Recent</span>
-    </h1>
-    <div class="set-container">
-      <SetBox v-for="set in recentSetsData.content" :key="set.id" :set="set"
-        @reload="fetchAllData"
-      />
-    </div>
-
-    <!-- Recent Pagination -->
-    <div v-if="recentSetsData.totalPages > 0" class="pagination-container">
-      <div class="pagination-info">
-        Page {{ recentSetsData.number + 1 }} of {{ recentSetsData.totalPages }}
-        (Total {{ recentSetsData.totalElements }} items)
+    <!-- Section Recent - visible only for logged-in users -->
+    <div v-if="!isGuestMode">
+      <h1 class="section-header">
+        <span class="section-title">Recent</span>
+      </h1>
+      <div class="set-container">
+        <SetBox v-for="set in recentSetsData.content" :key="set.id" :set="set"
+                @reload="fetchAllData"
+        />
       </div>
-      <div class="pagination-controls">
-        <button
-            @click="changePage('recent', 0)"
-            :disabled="recentSetsPage === 0 || isLoadingRecent"
-            class="pagination-btn"
-        >
-          First
-        </button>
-        <button
-            @click="changePage('recent', recentSetsPage - 1)"
-            :disabled="recentSetsPage === 0 || isLoadingRecent"
-            class="pagination-btn"
-        >
-          Previous
-        </button>
-        <button
-            v-for="page in getPageNumbers(recentSetsData.totalPages, recentSetsPage)"
-            :key="page"
-            @click="changePage('recent', page)"
-            :class="['pagination-btn', { active: page === recentSetsPage }]"
-            :disabled="isLoadingRecent"
-        >
-          {{ page + 1 }}
-        </button>
-        <button
-            @click="changePage('recent', recentSetsPage + 1)"
-            :disabled="recentSetsPage + 1 >= recentSetsData.totalPages || isLoadingRecent"
-            class="pagination-btn"
-        >
-          Next
-        </button>
-        <button
-            @click="changePage('recent', recentSetsData.totalPages - 1)"
-            :disabled="recentSetsPage + 1 >= recentSetsData.totalPages || isLoadingRecent"
-            class="pagination-btn"
-        >
-          Last
-        </button>
+
+      <!-- Recent Pagination -->
+      <div v-if="recentSetsData.totalPages > 0" class="pagination-container">
+        <div class="pagination-info">
+          Page {{ recentSetsData.number + 1 }} of {{ recentSetsData.totalPages }}
+          (Total {{ recentSetsData.totalElements }} items)
+        </div>
+        <div class="pagination-controls">
+          <button
+              @click="changePage('recent', 0)"
+              :disabled="recentSetsPage === 0 || isLoadingRecent"
+              class="pagination-btn"
+          >
+            First
+          </button>
+          <button
+              @click="changePage('recent', recentSetsPage - 1)"
+              :disabled="recentSetsPage === 0 || isLoadingRecent"
+              class="pagination-btn"
+          >
+            Previous
+          </button>
+          <button
+              v-for="page in getPageNumbers(recentSetsData.totalPages, recentSetsPage)"
+              :key="page"
+              @click="changePage('recent', page)"
+              :class="['pagination-btn', { active: page === recentSetsPage }]"
+              :disabled="isLoadingRecent"
+          >
+            {{ page + 1 }}
+          </button>
+          <button
+              @click="changePage('recent', recentSetsPage + 1)"
+              :disabled="recentSetsPage + 1 >= recentSetsData.totalPages || isLoadingRecent"
+              class="pagination-btn"
+          >
+            Next
+          </button>
+          <button
+              @click="changePage('recent', recentSetsData.totalPages - 1)"
+              :disabled="recentSetsPage + 1 >= recentSetsData.totalPages || isLoadingRecent"
+              class="pagination-btn"
+          >
+            Last
+          </button>
+        </div>
+        <div v-if="isLoadingRecent" class="loading">Loading...</div>
       </div>
-      <div v-if="isLoadingRecent" class="loading">Loading...</div>
     </div>
 
-    <!-- Section Library -->
-    <h1 class="section-header">
-      <span class="section-title-library" @click="goToLibrary">Your Library</span>
-      <span v-if="sets.length > 3" class="more-link" @click="goToLibrary">More...</span>
-    </h1>
-    <div class="set-container">
-      <SetBox v-for="set in sets" :key="set.id" :set="set"
-              @reload = "fetchAllData"
-      />
+    <!-- Section Library - visible only for logged-in users -->
+    <div v-if="!isGuestMode">
+      <h1 class="section-header">
+        <span class="section-title-library" @click="goToLibrary">Your Library</span>
+        <span v-if="sets.length > 3" class="more-link" @click="goToLibrary">More...</span>
+      </h1>
+      <div class="set-container">
+        <SetBox v-for="set in sets" :key="set.id" :set="set"
+                @reload="fetchAllData"
+        />
+      </div>
     </div>
 
-    <!-- Section Community -->
+    <!-- Section Community - visible for all users -->
     <h1 class="section-header">
       <span class="section-title">Community</span>
     </h1>
     <div class="set-container">
       <SetBox v-for="set in publicSetsData.content" :key="set.id" :set="set"
-              @reload = "fetchAllData"
+              @reload="fetchAllData"
+              :isGuestMode="isGuestMode"
       />
     </div>
 
@@ -277,6 +349,56 @@ const getPageNumbers = (totalPages, currentPage) => {
   padding: 50px;
   margin-left: 20px;
   margin-right: 30px;
+}
+
+.guest-message {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  margin-top: 30px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.guest-message p {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.guest-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.login-btn, .register-btn {
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn {
+  background-color: #4a6fa5;
+  color: white;
+  border: none;
+}
+
+.login-btn:hover {
+  background-color: #3a5a8c;
+}
+
+.register-btn {
+  background-color: white;
+  color: #4a6fa5;
+  border: 1px solid #4a6fa5;
+}
+
+.register-btn:hover {
+  background-color: #f0f5fb;
 }
 
 .review-box {

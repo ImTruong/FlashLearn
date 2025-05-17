@@ -42,6 +42,7 @@
     const searchItem = ref("")
     const newItem = ref(false);
     const classTable = ref(false)
+    const token = localStorage.getItem('token');
 
     const reload = () => {
         emit('reload');
@@ -52,12 +53,25 @@
     };
 
     const toggleNotifications = () => {
-        showNotifications.value = !showNotifications.value
+        if (token == null) {
+            alert('Login to use this feature');
+            window.location.href = '/login';
+        }
+        else{
+            showNotifications.value = !showNotifications.value;
+        }
     }
 
     const showClassTable = () =>{
-        classTable.value = !classTable.value;
-        newItem.value = !newItem;
+        if (token == null) {
+            alert('Login to use this feature');
+            window.location.href = '/login';
+        }
+        else{
+          classTable.value = !classTable.value;
+          newItem.value = !newItem;
+        }
+
     }
     const performSearch = (query) => {
         showSearch.value = true;
@@ -66,8 +80,15 @@
     };
 
     const showSetTable = (editMode = false) => {
-        isEditMode.value = editMode;
-        setTable.value = true; // Hiển thị SetTable
+        if (token == null) {
+            alert('Login to use this feature');
+            window.location.href = '/login';
+        }
+        else{
+          isEditMode.value = editMode;
+          setTable.value = true; // Hiển thị SetTable
+        }
+
     };
 
     const handleSet = (data) => {

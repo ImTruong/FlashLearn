@@ -117,6 +117,11 @@ const loadPage = (page) => {
 };
 
 onMounted(() => {
+  if (token == null) {
+    window.location.href = '/login';
+    alert('Login for to use this feature');
+    return;
+  }
   fetchStatisticByTime();
 });
 

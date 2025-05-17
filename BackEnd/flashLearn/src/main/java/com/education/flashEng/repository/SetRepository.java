@@ -18,4 +18,6 @@ public interface SetRepository extends JpaRepository<SetEntity, Long> {
 
     @Query("SELECT s FROM SetEntity s WHERE (:name IS NULL OR :name = '' OR s.name LIKE %:name%) AND s.classEntity.id = :classId")
     List<SetEntity> findAllByClassEntityIdAndNameContaining(Long classId, String name);
+
+    List<SetEntity> findAllByPrivacyStatusAndNameLike(String aPublic, String name);
 }
