@@ -181,4 +181,10 @@ public class UserServiceImpl implements UserService {
         } else
             throw new UserNotAuthenticatedException("You are not authorized to do this action");
     }
+
+    @Override
+    public String getCurrentUserRole() {
+        UserEntity user = getUserFromSecurityContext();
+        return user.getRoleEntity().getName();
+    }
 }

@@ -35,6 +35,12 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping("/role")
+    public ResponseEntity<?> getUserRole() {
+        ApiResponse<?> response = new ApiResponse<>(true, "User Role Fetched Successfully", userService.getCurrentUserRole());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
         ApiResponse<String> response = new ApiResponse<String>(userService.register(registerRequest),"Registration Successful");
