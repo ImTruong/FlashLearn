@@ -10,7 +10,7 @@ const token = localStorage.getItem('token');
 // Sets pagination
 const sets = ref(null);
 const setsPage = ref(0);
-const setsSize = ref(10);
+const setsSize = ref(12);
 const setsTotalPages = ref(0);
 const setsTotalElements = ref(0);
 

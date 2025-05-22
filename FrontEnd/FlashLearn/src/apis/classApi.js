@@ -265,7 +265,7 @@ export const updateMemberRole = async (payload, token) => {
     // store.dispatch('classModule/updateMemberRole', payload);
 };
 
-export const getCurrentUserClasses = async (token,page,size) => {
+export const getCurrentUserClasses = async (token,page,size,name) => {
     try {
         const response = await axios.get('/class/user', {
             headers: {
@@ -273,7 +273,8 @@ export const getCurrentUserClasses = async (token,page,size) => {
             },
             params:{
                 page: page,
-                size: size
+                size: size,
+                name: name
             }
         });
         return response.data.data;

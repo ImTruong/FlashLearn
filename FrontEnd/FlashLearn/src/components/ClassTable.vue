@@ -453,6 +453,8 @@ const saveClassName = async () => {
       alert('Class updated successfully.');
       localStorage.setItem('className', className.value);
       emit('reload');
+      await getMember();
+      isDisplayRoleSetting.value = true;
     } else {
       response = await createClass(payload, token);
       classId.value = response.classId;
@@ -460,6 +462,8 @@ const saveClassName = async () => {
       localStorage.setItem('className', className.value);
       emit('save', response);
       emit('reload');
+      await getMember();
+      isDisplayRoleSetting.value = true;
     }
   } catch (error) {
     console.error('Error saving class:', error);
