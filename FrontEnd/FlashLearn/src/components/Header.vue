@@ -102,7 +102,7 @@
 </script>
 
 <template>
-    <div class="container">
+    <div class="header-container">
         <OverlayBackground :isVisible="menuOpen" @clickOverlay="menuOpen = false" />
         <header>
             <div class="nav-header">
