@@ -19,6 +19,7 @@ export const fetchWordAutomationData = async (word) => {
 
 // Thêm từ mới
 export const createWord = async (wordData,token) => {
+    console.log(wordData.setId)
   try {
     const response = await axios.post('word', wordData, {
       headers: {

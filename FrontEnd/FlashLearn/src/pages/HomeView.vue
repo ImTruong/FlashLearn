@@ -28,7 +28,7 @@ const publicSetsSize = ref(6);
 const librarySetsSize = ref(6);
 const isLoadingRecent = ref(false);
 const isLoadingPublic = ref(false);
-const isGuestMode = ref(false); // Thêm trạng thái chế độ khách
+const isGuestMode = ref(false);
 
 // Kiểm tra token và đặt chế độ khách nếu cần
 const checkAuthStatus = () => {
@@ -44,16 +44,16 @@ const fetchUserInfo = async (token) => {
   try {
     const user = await getCurrentUser(token);
     localStorage.setItem("user", JSON.stringify(user));
-    isGuestMode.value = false; // Đặt lại chế độ khách khi lấy thông tin user thành công
+    isGuestMode.value = false;
   } catch (error) {
     console.error("Error fetching user info:", error);
-    isGuestMode.value = true; // Kích hoạt chế độ khách khi có lỗi
+    isGuestMode.value = true;
     console.log("Guest mode activated: User API error");
   }
 };
 
 const fetchRecentSet = async (token, page) => {
-  if (isGuestMode.value) return; // Không gọi API nếu đang ở chế độ khách
+  if (isGuestMode.value) return;
 
   try {
     isLoadingRecent.value = true;
@@ -63,7 +63,7 @@ const fetchRecentSet = async (token, page) => {
   } catch (error) {
     console.error("Error fetching recent sets:", error);
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      isGuestMode.value = true; // Kích hoạt chế độ khách khi token hết hạn
+      isGuestMode.value = true;
       console.log("Guest mode activated: Recent sets API unauthorized");
     }
   } finally {
@@ -86,7 +86,7 @@ const fetchPublicSet = async (token, page) => {
 };
 
 const fetchLibrarySet = async (token) => {
-  if (isGuestMode.value) return; // Không gọi API nếu đang ở chế độ khách
+  if (isGuestMode.value) return;
 
   try {
     const response = await getLibrarySet(token, librarySetsPage.value, librarySetsSize.value);
@@ -94,7 +94,7 @@ const fetchLibrarySet = async (token) => {
   } catch (error) {
     console.error("Error fetching library sets:", error);
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-      isGuestMode.value = true; // Kích hoạt chế độ khách khi token hết hạn
+      isGuestMode.value = true;
       console.log("Guest mode activated: Library API unauthorized");
     }
   }
@@ -103,7 +103,6 @@ const fetchLibrarySet = async (token) => {
 const fetchAllData = async () => {
   const token = checkAuthStatus();
   if (!token) {
-    // Nếu không có token, chỉ tải dữ liệu public
     await fetchPublicSet(null, publicSetsPage.value);
     return;
   }
@@ -114,7 +113,6 @@ const fetchAllData = async () => {
       fetchPublicSet(token, publicSetsPage.value)
     ]);
 
-    // Chỉ tải dữ liệu riêng tư nếu không ở chế độ khách
     if (!isGuestMode.value) {
       await Promise.all([
         fetchLibrarySet(token),
@@ -123,15 +121,12 @@ const fetchAllData = async () => {
     }
   } catch (error) {
     console.error("Error in fetchAllData:", error);
-    // Nếu có lỗi chung, đặt chế độ khách
     isGuestMode.value = true;
     console.log("Guest mode activated: General error in data fetching");
-    // Đảm bảo vẫn tải dữ liệu công cộng
     await fetchPublicSet(null, publicSetsPage.value);
   }
 };
 
-// Tính toán message hiển thị cho khách
 const guestMessage = computed(() => {
   return isGuestMode.value ? "You are browsing as a guest. Sign in to access all features." : "";
 });
@@ -157,7 +152,6 @@ const goToLibrary = () => {
   router.push("/library");
 };
 
-// Hàm xử lý chuyển trang
 const changePage = async (type, page) => {
   if (page < 0 || page >= (type === "recent" ? recentSetsData.value.totalPages : publicSetsData.value.totalPages)) return;
 
@@ -169,7 +163,6 @@ const changePage = async (type, page) => {
   }
 };
 
-// Tạo danh sách số trang
 const getPageNumbers = (totalPages, currentPage) => {
   const maxPagesToShow = 5;
   const pages = [];
@@ -195,322 +188,602 @@ const getPageNumbers = (totalPages, currentPage) => {
       :isGuestMode="isGuestMode"
       @reload="fetchAllData"
   />
-  <div class="home">
-    <!-- Guest mode message -->
-    <div v-if="isGuestMode" class="guest-message">
-      <p>{{ guestMessage }}</p>
-      <div class="guest-buttons">
-        <button @click="router.push('/login')" class="login-btn">Login</button>
-        <button @click="router.push('/signup')" class="register-btn">Register</button>
-      </div>
-    </div>
 
-    <!-- Review box - visible only for logged-in users -->
-    <div v-if="!isGuestMode" class="review-box" @click="goToStudy">
-      <p>It's time to review...</p>
-    </div>
+  <div class="home-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-title">Welcome to FlashCard Hub</h1>
+        <p class="hero-subtitle">Master your learning with smart flashcards</p>
 
-    <!-- Section Recent - visible only for logged-in users -->
-    <div v-if="!isGuestMode">
-      <h1 class="section-header">
-        <span class="section-title">Recent</span>
-      </h1>
-      <div class="set-container">
-        <SetBox v-for="set in recentSetsData.content" :key="set.id" :set="set"
-                @reload="fetchAllData"
-        />
-      </div>
-
-      <!-- Recent Pagination -->
-      <div v-if="recentSetsData.totalPages > 0" class="pagination-container">
-        <div class="pagination-info">
-          Page {{ recentSetsData.number + 1 }} of {{ recentSetsData.totalPages }}
-          (Total {{ recentSetsData.totalElements }} items)
+        <!-- Guest mode message -->
+        <div v-if="isGuestMode" class="guest-welcome-card">
+          <div class="guest-icon">👋</div>
+          <h3>Welcome, Guest!</h3>
+          <p>{{ guestMessage }}</p>
+          <div class="guest-actions">
+            <button @click="router.push('/login')" class="btn-primary">
+              <span class="btn-icon">🔐</span>
+              Login
+            </button>
+            <button @click="router.push('/signup')" class="btn-secondary">
+              <span class="btn-icon">✨</span>
+              Join Us
+            </button>
+          </div>
         </div>
-        <div class="pagination-controls">
-          <button
-              @click="changePage('recent', 0)"
-              :disabled="recentSetsPage === 0 || isLoadingRecent"
-              class="pagination-btn"
-          >
-            First
-          </button>
-          <button
-              @click="changePage('recent', recentSetsPage - 1)"
-              :disabled="recentSetsPage === 0 || isLoadingRecent"
-              class="pagination-btn"
-          >
-            Previous
-          </button>
-          <button
-              v-for="page in getPageNumbers(recentSetsData.totalPages, recentSetsPage)"
-              :key="page"
-              @click="changePage('recent', page)"
-              :class="['pagination-btn', { active: page === recentSetsPage }]"
-              :disabled="isLoadingRecent"
-          >
-            {{ page + 1 }}
-          </button>
-          <button
-              @click="changePage('recent', recentSetsPage + 1)"
-              :disabled="recentSetsPage + 1 >= recentSetsData.totalPages || isLoadingRecent"
-              class="pagination-btn"
-          >
-            Next
-          </button>
-          <button
-              @click="changePage('recent', recentSetsData.totalPages - 1)"
-              :disabled="recentSetsPage + 1 >= recentSetsData.totalPages || isLoadingRecent"
-              class="pagination-btn"
-          >
-            Last
+
+        <!-- Review box for logged-in users -->
+        <div v-else class="review-card" @click="goToStudy">
+          <div class="review-icon">📚</div>
+          <div class="review-content">
+            <h3>Ready to Study?</h3>
+            <p>Continue your learning journey</p>
+          </div>
+          <div class="review-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <!-- Recent Section -->
+      <section v-if="!isGuestMode" class="content-section recent-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">⏰</span>
+            <h2>Recently Viewed</h2>
+          </div>
+        </div>
+
+        <div class="cards-grid recent-grid">
+          <SetBox
+              v-for="set in recentSetsData.content"
+              :key="set.id"
+              :set="set"
+              @reload="fetchAllData"
+              class="recent-card"
+          />
+        </div>
+
+        <!-- Recent Pagination -->
+        <div v-if="recentSetsData.totalPages > 0" class="pagination-wrapper">
+          <div class="pagination-info">
+            Showing {{ recentSetsData.content.length }} of {{ recentSetsData.totalElements }} recent sets
+          </div>
+          <div class="pagination-controls">
+            <button
+                @click="changePage('recent', recentSetsPage - 1)"
+                :disabled="recentSetsPage === 0 || isLoadingRecent"
+                class="pagination-btn nav-btn"
+            >
+              ‹ Previous
+            </button>
+
+            <div class="page-numbers">
+              <button
+                  v-for="page in getPageNumbers(recentSetsData.totalPages, recentSetsPage)"
+                  :key="page"
+                  @click="changePage('recent', page)"
+                  :class="['pagination-btn', 'page-btn', { active: page === recentSetsPage }]"
+                  :disabled="isLoadingRecent"
+              >
+                {{ page + 1 }}
+              </button>
+            </div>
+
+            <button
+                @click="changePage('recent', recentSetsPage + 1)"
+                :disabled="recentSetsPage + 1 >= recentSetsData.totalPages || isLoadingRecent"
+                class="pagination-btn nav-btn"
+            >
+              Next ›
+            </button>
+          </div>
+          <div v-if="isLoadingRecent" class="loading-indicator">Loading...</div>
+        </div>
+      </section>
+
+      <!-- Library Section -->
+      <section v-if="!isGuestMode" class="content-section library-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">📖</span>
+            <h2 @click="goToLibrary" class="clickable-title">Your Library</h2>
+          </div>
+          <button v-if="sets.length > 3" @click="goToLibrary" class="view-all-btn">
+            View All <span class="arrow">→</span>
           </button>
         </div>
-        <div v-if="isLoadingRecent" class="loading">Loading...</div>
-      </div>
-    </div>
 
-    <!-- Section Library - visible only for logged-in users -->
-    <div v-if="!isGuestMode">
-      <h1 class="section-header">
-        <span class="section-title-library" @click="goToLibrary">Your Library</span>
-        <span v-if="sets.length > 3" class="more-link" @click="goToLibrary">More...</span>
-      </h1>
-      <div class="set-container">
-        <SetBox v-for="set in sets" :key="set.id" :set="set"
-                @reload="fetchAllData"
-        />
-      </div>
-    </div>
+        <div class="cards-grid library-grid">
+          <SetBox
+              v-for="set in sets.slice(0, 6)"
+              :key="set.id"
+              :set="set"
+              @reload="fetchAllData"
+              class="library-card"
+          />
+        </div>
+      </section>
 
-    <!-- Section Community - visible for all users -->
-    <h1 class="section-header">
-      <span class="section-title">Community</span>
-    </h1>
-    <div class="set-container">
-      <SetBox v-for="set in publicSetsData.content" :key="set.id" :set="set"
+      <!-- Community Section -->
+      <section class="content-section community-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">🌍</span>
+            <h2>Community Hub</h2>
+          </div>
+          <div class="community-stats">
+            <span class="stat">{{ publicSetsData.totalElements }} public sets</span>
+          </div>
+        </div>
+
+        <div class="cards-grid community-grid">
+          <SetBox
+              v-for="set in publicSetsData.content"
+              :key="set.id"
+              :set="set"
               @reload="fetchAllData"
               :isGuestMode="isGuestMode"
-      />
-    </div>
+              class="community-card"
+          />
+        </div>
 
-    <!-- Public Sets Pagination -->
-    <div v-if="publicSetsData.totalPages > 0" class="pagination-container">
-      <div class="pagination-info">
-        Page {{ publicSetsData.number + 1 }} of {{ publicSetsData.totalPages }}
-        (Total {{ publicSetsData.totalElements }} items)
-      </div>
-      <div class="pagination-controls">
-        <button
-            @click="changePage('public', 0)"
-            :disabled="publicSetsPage === 0 || isLoadingPublic"
-            class="pagination-btn"
-        >
-          First
-        </button>
-        <button
-            @click="changePage('public', publicSetsPage - 1)"
-            :disabled="publicSetsPage === 0 || isLoadingPublic"
-            class="pagination-btn"
-        >
-          Previous
-        </button>
-        <button
-            v-for="page in getPageNumbers(publicSetsData.totalPages, publicSetsPage)"
-            :key="page"
-            @click="changePage('public', page)"
-            :class="['pagination-btn', { active: page === publicSetsPage }]"
-            :disabled="isLoadingPublic"
-        >
-          {{ page + 1 }}
-        </button>
-        <button
-            @click="changePage('public', publicSetsPage + 1)"
-            :disabled="publicSetsPage + 1 >= publicSetsData.totalPages || isLoadingPublic"
-            class="pagination-btn"
-        >
-          Next
-        </button>
-        <button
-            @click="changePage('public', publicSetsData.totalPages - 1)"
-            :disabled="publicSetsPage + 1 >= publicSetsData.totalPages || isLoadingPublic"
-            class="pagination-btn"
-        >
-          Last
-        </button>
-      </div>
-      <div v-if="isLoadingPublic" class="loading">Loading...</div>
+        <!-- Public Sets Pagination -->
+        <div v-if="publicSetsData.totalPages > 0" class="pagination-wrapper">
+          <div class="pagination-info">
+            Page {{ publicSetsData.number + 1 }} of {{ publicSetsData.totalPages }}
+          </div>
+          <div class="pagination-controls">
+            <button
+                @click="changePage('public', publicSetsPage - 1)"
+                :disabled="publicSetsPage === 0 || isLoadingPublic"
+                class="pagination-btn nav-btn"
+            >
+              ‹ Previous
+            </button>
+
+            <div class="page-numbers">
+              <button
+                  v-for="page in getPageNumbers(publicSetsData.totalPages, publicSetsPage)"
+                  :key="page"
+                  @click="changePage('public', page)"
+                  :class="['pagination-btn', 'page-btn', { active: page === publicSetsPage }]"
+                  :disabled="isLoadingPublic"
+              >
+                {{ page + 1 }}
+              </button>
+            </div>
+
+            <button
+                @click="changePage('public', publicSetsPage + 1)"
+                :disabled="publicSetsPage + 1 >= publicSetsData.totalPages || isLoadingPublic"
+                class="pagination-btn nav-btn"
+            >
+              Next ›
+            </button>
+          </div>
+          <div v-if="isLoadingPublic" class="loading-indicator">Loading...</div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
-.home {
-  padding: 50px;
-  margin-left: 20px;
-  margin-right: 30px;
+/* Base styles */
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.guest-message {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  margin-top: 30px;
+/* Hero Section */
+.hero-section {
+  padding: 60px 50px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.guest-message p {
+.hero-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero-subtitle {
   font-size: 1.2rem;
-  margin-bottom: 15px;
-  color: #555;
+  opacity: 0.9;
+  margin-bottom: 2rem;
 }
 
-.guest-buttons {
+/* Guest Welcome Card */
+.guest-welcome-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  color: #333;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  animation: slideUp 0.6s ease-out;
+}
+
+.guest-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.guest-welcome-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.guest-welcome-card p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.guest-actions {
   display: flex;
+  gap: 1rem;
   justify-content: center;
-  gap: 15px;
 }
 
-.login-btn, .register-btn {
-  padding: 8px 20px;
-  border-radius: 4px;
-  font-weight: 500;
+/* Review Card */
+.review-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  color: #333;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.login-btn {
-  background-color: #4a6fa5;
-  color: white;
-  border: none;
-}
-
-.login-btn:hover {
-  background-color: #3a5a8c;
-}
-
-.register-btn {
-  background-color: white;
-  color: #4a6fa5;
-  border: 1px solid #4a6fa5;
-}
-
-.register-btn:hover {
-  background-color: #f0f5fb;
-}
-
-.review-box {
   display: flex;
-  justify-content: center;
   align-items: center;
-  background-color: #dff1f9;
-  border-radius: 8px;
-  padding: 30px;
-  margin-bottom: 20px;
-  margin-top: 30px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-size: 2.2rem;
-  font-weight: bold;
+  gap: 1.5rem;
+  animation: slideUp 0.6s ease-out;
+}
+
+.review-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.review-icon {
+  font-size: 2.5rem;
+}
+
+.review-content h3 {
+  font-size: 1.3rem;
+  margin-bottom: 0.3rem;
   color: #333;
-  text-align: center;
-  transition: background-color 0.3s;
 }
 
-.review-box:hover {
-  background-color: #cce7f0;
+.review-content p {
+  color: #666;
+  margin: 0;
 }
 
-.section-title,
-.section-title-library {
-  font-weight: bold;
-  margin-bottom: 20px;
-  cursor: pointer;
+.review-arrow {
+  font-size: 1.5rem;
+  color: #667eea;
+  margin-left: auto;
 }
 
-.section-title-library:hover {
-  transform: scale(1.05);
+/* Main Content */
+.main-content {
+  padding: 0 50px 50px;
 }
 
+/* Content Sections */
+.content-section {
+  margin-bottom: 4rem;
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.recent-section {
+  background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+  border-left: 4px solid #667eea;
+}
+
+.library-section {
+  background: linear-gradient(135deg, #fff 0%, #f8fff8 100%);
+  border-left: 4px solid #4ecdc4;
+}
+
+.community-section {
+  background: linear-gradient(135deg, #fff 0%, #fff8f0 100%);
+  border-left: 4px solid #ff6b6b;
+}
+
+/* Section Headers */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(0,0,0,0.05);
 }
 
-.set-container {
+.section-title {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.set-container .SetBox {
-  flex: 1 1 calc(20% - 20px);
-  box-sizing: border-box;
-  height: 350px;
-}
-
-.more-link {
-  font-size: 0.9rem;
-  color: #666;
-  cursor: pointer;
-  transition: color 0.3s, transform 0.2s;
-}
-
-.more-link:hover {
-  color: #333;
-  transform: scale(1.05);
-}
-
-.pagination-container {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  margin-top: 20px;
+  gap: 0.8rem;
+}
+
+.section-icon {
+  font-size: 1.8rem;
+}
+
+.section-title h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.clickable-title {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clickable-title:hover {
+  color: #667eea;
+  transform: translateX(5px);
+}
+
+.view-all-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.view-all-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.community-stats {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Card Grids */
+.cards-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.recent-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.library-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.community-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* Button Styles */
+.btn-primary, .btn-secondary {
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.btn-secondary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+}
+
+/* Pagination */
+.pagination-wrapper {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0,0,0,0.1);
 }
 
 .pagination-info {
-  margin-bottom: 10px;
+  text-align: center;
+  color: #666;
+  margin-bottom: 1rem;
   font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
 }
 
 .pagination-controls {
   display: flex;
-  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.25rem;
 }
 
 .pagination-btn {
-  font-size: 0.9rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid #ddd;
+  background: white;
   color: #666;
-  background: none;
-  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  transition: color 0.3s, transform 0.2s;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
 }
 
 .pagination-btn:hover:not(:disabled) {
-  color: #333;
-  transform: scale(1.05);
+  background: #f0f5ff;
+  color: #667eea;
+  border-color: #667eea;
 }
 
 .pagination-btn:disabled {
-  color: #ccc;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .pagination-btn.active {
-  color: #333;
-  font-weight: bold;
-  text-decoration: underline;
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
 }
 
-.loading {
-  margin-top: 10px;
-  font-size: 0.9rem;
-  color: #666;
+.nav-btn {
+  font-weight: 500;
+}
+
+.page-btn {
+  min-width: 35px;
+}
+
+.loading-indicator {
+  text-align: center;
+  color: #667eea;
+  margin-top: 1rem;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .home-container {
+    padding: 0;
+  }
+
+  .hero-section {
+    padding: 40px 20px 30px;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .main-content {
+    padding: 0 20px 30px;
+  }
+
+  .content-section {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guest-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .review-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pagination-controls {
+    flex-wrap: wrap;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .section-title h2 {
+    font-size: 1.4rem;
+  }
 }
 </style>

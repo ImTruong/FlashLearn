@@ -455,8 +455,8 @@ const closeImage = () => {
   </div>
 
   <ModifyCardModal
-      :setName="setName.value"
-      :setId="currentSetId.value"
+      :setName="setName"
+      :setId="currentSetId"
       :word="isEditWord ? editWord : null"
       v-if="showModifyCardModal"
       @update="updateWord"
