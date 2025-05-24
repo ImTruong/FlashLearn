@@ -226,8 +226,9 @@ public class SetServiceImpl implements SetService {
                 boolean isAdmin = setEntity.getClassEntity().getClassMemberEntityList().stream()
                         .anyMatch(classMemberEntity -> classMemberEntity.getUserEntity().getId().equals(user.getId()) &&
                                 "ADMIN".equals(classMemberEntity.getRoleClassEntity().getName()));
-                if (!isAdmin)
+                if (!isAdmin && !setEntity.getUserEntity().getId().equals(user.getId())) {
                     throw new IllegalArgumentException("Only an admin can delete a set with class privacy.");
+                }
             }
         }
 
