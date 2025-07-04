@@ -14,7 +14,11 @@ spring:
     multipart:
       max-file-size: 10MB
       enabled: true
-
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: flash_learn_chat
 jwt:
   secretKey: QhV1bbgiS2lzKg9ZCW2LyiOMr0popaPoaOdb4l+I68M=
 
