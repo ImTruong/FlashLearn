@@ -35,7 +35,7 @@ public class ClassController {
 
     @GetMapping("/user")
     public ResponseEntity<?> getAllCurrentUserClasses(@RequestParam (required = false) String name,
-                                                    Pageable pageable) {
+                                                      Pageable pageable) {
         ApiResponse<?> response = new ApiResponse<>(true, "Classes Fetched Successfully", classService.getAllCurrentUserClasses(pageable,name));
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

@@ -19,7 +19,7 @@ public class ClassMessageResponse {
 
     private String message;
 
-    private String replyToMessageId;
+    private ClassMessageResponse replyToMessage;
 
     private LocalDateTime createdAt;
 

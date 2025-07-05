@@ -1,7 +1,7 @@
 package com.education.flashEng.service.Impl;
 
 import com.education.flashEng.entity.ClassMemberEntity;
-import com.education.flashEng.entity.ClassMessage;
+import com.education.flashEng.entity.ClassMessageEntity;
 import com.education.flashEng.entity.UserEntity;
 import com.education.flashEng.payload.request.CreateClassMessageRequest;
 import com.education.flashEng.payload.response.ClassMessageResponse;
@@ -10,6 +10,7 @@ import com.education.flashEng.service.ClassMemberService;
 import com.education.flashEng.service.ClassMessageService;
 import com.education.flashEng.service.UserService;
 import jakarta.transaction.Transactional;
+import org.bson.types.ObjectId;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,27 +36,42 @@ public class ClassMessageServiceImpl implements ClassMessageService {
     @Autowired
     private ModelMapper modelMapper;
 
+
     @Transactional
     @Override
     public boolean sendMessageToClass(CreateClassMessageRequest request) {
         UserEntity currentUser = userService.getUserFromSecurityContext();
         Long classId = request.getClassId();
-        ClassMemberEntity classMember = classMemberService.getClassMemberByClassIdAndUserId(classId, currentUser.getId());
-        if(request.getReplyToMessageId()!=null)
+
+        ClassMemberEntity classMember = classMemberService.getClassMemberByClassIdAndUserId(
+                classId,
+                currentUser.getId()
+        );
+
+        ObjectId replyObjectId = null;
+
+        if (request.getReplyToMessageId() != null) {
+            replyObjectId = new ObjectId(request.getReplyToMessageId()); // ✅ ép kiểu
+
+            // Optional kiểm tra tồn tại message được reply
             classMessageRepository.findByClassIdAndId(classId, request.getReplyToMessageId())
-                .orElseThrow(() -> new IllegalArgumentException("Reply message not found"));
-        ClassMessage classMessage = ClassMessage.builder()
+                    .orElseThrow(() -> new IllegalArgumentException("Reply message not found"));
+        }
+
+        ClassMessageEntity classMessageEntity = ClassMessageEntity.builder()
                 .classId(classId)
                 .senderId(currentUser.getId())
                 .senderName(currentUser.getFullName())
                 .senderRole(classMember.getRoleClassEntity().getName())
                 .message(request.getMessage())
-                .replyToMessageId(request.getReplyToMessageId())
+                .replyToMessageId(replyObjectId) // ✅ truyền vào đúng ObjectId
                 .createdAt(LocalDateTime.now())
                 .build();
-        classMessageRepository.save(classMessage);
+
+        classMessageRepository.save(classMessageEntity);
         return true;
     }
+
 
     @Override
     public Page<ClassMessageResponse> getMessagesByClassId(Long classId, Pageable pageable) {
@@ -65,6 +81,12 @@ public class ClassMessageServiceImpl implements ClassMessageService {
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), messages.size());
         List<ClassMessageResponse> paginatedMessages = messages.subList(start, end);
+        for (ClassMessageResponse message : paginatedMessages) {
+            if (message.getSenderName().equals(currentUser.getFullName())) {
+                message.setSenderName("You");
+            }
+
+        }
         return new PageImpl<>(paginatedMessages, pageable, messages.size());
     }
 
@@ -72,10 +94,17 @@ public class ClassMessageServiceImpl implements ClassMessageService {
     @Override
     public boolean deleteMessageById(String id) {
         UserEntity currentUser = userService.getUserFromSecurityContext();
-        ClassMessage classMessage = classMessageRepository.findByIdAndSenderId(id, currentUser.getId())
+        ClassMessageEntity classMessageEntity = classMessageRepository.findByIdAndSenderId(id, currentUser.getId())
                 .orElseThrow(() -> new IllegalArgumentException("You do not have permission to delete this message"));
-        classMessage.setDeleted(true);
-        classMessageRepository.save(classMessage);
+        classMessageEntity.setDeleted(true);
+        classMessageRepository.save(classMessageEntity);
+        return true;
+    }
+
+    @Transactional
+    @Override
+    public boolean deleteAllMessagesByClassId(Long classId) {
+        classMessageRepository.deleteAllByClassId(classId);
         return true;
     }
 }

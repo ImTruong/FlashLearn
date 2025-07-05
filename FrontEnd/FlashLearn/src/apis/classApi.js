@@ -2,6 +2,56 @@
 import store from '@/store';
 import classModule from '@/store/modules/classModule';
 // end fake data
+export const getClassMessages = async (classId, token, page = 0, size = 20) => {
+    try {
+        const response = await axios.get(`/class/message/${classId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            params: {
+                page: page,
+                size: size
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching class messages:', error);
+        throw error.response?.data?.message || 'Failed to fetch messages';
+    }
+};
+
+// Gửi tin nhắn mới
+export const sendClassMessage = async (messageData, token) => {
+    try {
+        const response = await axios.post(`/class/message`, messageData, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error sending message:', error);
+        throw error.response?.data?.message || 'Failed to send message';
+    }
+};
+
+// Xóa tin nhắn
+export const deleteClassMessage = async (messageId, token) => {
+    try {
+        const response = await axios.delete(`/class/message/${messageId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting message:', error);
+        throw error.response?.data?.message || 'Failed to delete message';
+    }
+};
 
 export const getClassesByName = async (name,token, page, size) => {
     try{

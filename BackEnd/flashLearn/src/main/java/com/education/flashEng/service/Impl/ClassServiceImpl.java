@@ -59,6 +59,10 @@ public class ClassServiceImpl implements ClassService {
     @Lazy
     private ClassJoinRequestService classJoinRequestService;
 
+    @Autowired
+    @Lazy
+    private ClassMessageService classMessageService;
+
     @Transactional
     @Override
     public ClassMemberListReponse createClass(CreateClassRequest createClassRequest) {
@@ -174,6 +178,9 @@ public class ClassServiceImpl implements ClassService {
         classEntity.getSetsEntityList().forEach(setEntity -> {
             setService.updateSetPrivacyToPrivateByEntity(setEntity);
         });
+
+        //delete all message
+        classMessageService.deleteAllMessagesByClassId(classEntity.getId());
         //delete class
         classRepository.delete(classEntity);
         return true;

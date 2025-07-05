@@ -2,6 +2,7 @@ package com.education.flashEng.entity;
 
 import jakarta.persistence.Id;
 import lombok.*;
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -12,10 +13,10 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @Document(collection = "class_messages")
-public class ClassMessage {
+public class ClassMessageEntity {
 
     @Id
-    private String id;
+    private ObjectId id;
 
     @Field("class_id")
     private Long classId;
@@ -33,7 +34,7 @@ public class ClassMessage {
     private String message;
 
     @Field("reply_to_message_id")
-    private String replyToMessageId;
+    private ObjectId replyToMessageId;
 
     @Field("created_at")
     private LocalDateTime createdAt;
@@ -41,7 +42,7 @@ public class ClassMessage {
     @Field("deleted")
     private boolean deleted = false;
 
-    public ClassMessage() {
+    public ClassMessageEntity() {
         this.createdAt = LocalDateTime.now();
     }
 }
