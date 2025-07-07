@@ -5,6 +5,21 @@ import setModule from "@/store/modules/setModule";
 
 import axios from 'axios';
 
+
+export const getSuggestedWords = async (token) => {
+    try {
+        const response = await axios.get('/word/suggestions', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+        });
+        return response.data.data;
+    } catch (error) {
+        console.error('Error fetching suggested words:', error);
+        return [];
+    }
+}
+
 // Lấy nghĩa của từ
 export const fetchWordAutomationData = async (word) => {
   try {

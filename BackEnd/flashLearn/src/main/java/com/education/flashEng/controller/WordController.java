@@ -3,6 +3,7 @@ package com.education.flashEng.controller;
 import com.education.flashEng.payload.request.CreateWordRequest;
 import com.education.flashEng.payload.request.UpdateWordRequest;
 import com.education.flashEng.payload.response.ApiResponse;
+import com.education.flashEng.service.VocabularySuggestionService;
 import com.education.flashEng.service.WordService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,12 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/word")
 public class WordController {
+
     @Autowired
-    WordService wordService;
+    private WordService wordService;
+
+    @Autowired
+    private VocabularySuggestionService vocabularySuggestionService;
 
     @PostMapping
     public ResponseEntity<?> createWord(@Valid @ModelAttribute CreateWordRequest createWordRequest){
@@ -46,6 +51,12 @@ public class WordController {
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteWord(@PathVariable Long id){
         ApiResponse<?> response = new ApiResponse<>(wordService.deleteWordById(id), "Delete Word Successfully");
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<?> getVocabularySuggestions() throws IOException {
+        ApiResponse<?> response = new ApiResponse<>(true, "Get Vocabulary Suggestions Successfully", vocabularySuggestionService.generateSuggestions());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

@@ -22,7 +22,14 @@ spring:
 jwt:
   secretKey: QhV1bbgiS2lzKg9ZCW2LyiOMr0popaPoaOdb4l+I68M=
 
+word2vec:
+  model:
+    path: ${WORD2VEC_MODEL_PATH:F:\code\AI w2v\GoogleNews-vectors-negative300-SLIM.bin}
+  max-suggestions: 10
+  min-similarity: 0.3
+
 cloudinary:
   cloudName: dqofcuddy
   apiKey: 876145164613944
   apiSecret: _fg29syjHV-witNIs4Z3psJdTQ0
+

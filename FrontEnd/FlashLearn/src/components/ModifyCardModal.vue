@@ -16,6 +16,7 @@ const isDropdownOpen = ref(false);
 const showImg = ref(false);
 // Lấy token từ localStorage để xác thực API
 const token = localStorage.getItem('token');
+const recommendedWord = ref('');
 
 // Định nghĩa props nhận từ component cha
 const props = defineProps({
@@ -49,6 +50,26 @@ const audioCache = ref({});
 // Lưu dữ liệu từ API tự động lấy thông tin từ
 let data = ref(null);
 
+// Hàm lấy từ được đề xuất từ localStorage
+const getRecommendedWord = () => {
+  const stored = localStorage.getItem('recommendedWord');
+  recommendedWord.value = stored || '';
+};
+// Hàm chọn từ được đề xuất
+const selectRecommendedWord = async (word) => {
+  newWord.value.word = word;
+  // Auto click loa và load dữ liệu
+  await setWordAutoData(word);
+  // Phát audio sau khi load xong
+  setTimeout(() => {
+    handlePlayAudio();
+  }, 500);
+};
+// Hàm xóa từ khỏi localStorage sau khi tạo thành công
+const removeRecommendedWord = () => {
+  localStorage.removeItem('recommendedWord');
+  recommendedWord.value = '';
+};
 // Hàm đóng form
 const closeForm = () => {
   emit('close'); // Phát sự kiện đóng form
@@ -91,6 +112,7 @@ const setWordAutoData = async (word) => {
 
 // Khi component được mount, nếu có từ chỉnh sửa thì lấy dữ liệu tự động
 onMounted(() => {
+  getRecommendedWord();
   if (props.word) {
     setWordAutoData(props.word);
   }
@@ -153,6 +175,7 @@ const saveData = async () => {
       // Tạo từ mới nếu không có props.word
       response = await createWord(formData, token);
       emit('save', response.data); // Phát sự kiện lưu
+      removeRecommendedWord();
     }
     alert(response.message); // Hiển thị thông báo thành công
     closeForm(); // Đóng form
@@ -223,6 +246,17 @@ const handlePlayAudio = () => {
         <div class="form-group">
           <label for="word">Word:</label>
           <input type="text" v-model="newWord.word" placeholder="Enter word" @focusout="setWordAutoData(newWord.word)" />
+        </div>
+        <div class="form-group" v-if="recommendedWord">
+          <label>Recommended:</label>
+          <div class="recommended-words">
+            <button
+                type="button"
+                @click="selectRecommendedWord(recommendedWord)"
+                class="recommended-btn">
+              {{ recommendedWord }}
+            </button>
+          </div>
         </div>
   
         <div class="form-group">
@@ -515,6 +549,32 @@ const handlePlayAudio = () => {
     vertical-align: middle;
   }
 
+  .recommended-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .recommended-btn {
+    background-color: #f0f8ff;
+    border: 1px solid #b0d4ff;
+    color: #0066cc;
+    padding: 6px 12px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .recommended-btn:hover {
+    background-color: #e0f0ff;
+    transform: translateY(-1px);
+  }
+
+  .recommended-btn:active {
+    transform: translateY(0);
+  }
   
 </style>
 

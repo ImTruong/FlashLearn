@@ -41,4 +41,12 @@ public interface StudySessionRepository extends JpaRepository<StudySessionEntity
 
     @Query(value = "SELECT * FROM study_sessions s WHERE s.word_id = :wordId AND s.user_id = :userId ORDER BY s.created_at DESC LIMIT 1 OFFSET 1", nativeQuery = true)
     Optional<StudySessionEntity> findSecondNewestStudySessionEntityByWordEntityIdAndUserEntityId(@Param("wordId") Long wordId, @Param("userId") Long userId);
+
+    @Query(value = "SELECT word FROM study_sessions s" +
+            "    JOIN words w on w.id=s.word_id" +
+            "    WHERE s.user_id = :userId" +
+            "    GROUP BY s.word_id" +
+            "    ORDER BY MAX(s.created_at) DESC" +
+            "    LIMIT :n", nativeQuery = true)
+    List<String> getNClosestDistinctStudyWordsByUserEntityId(Long userId,int n);
 }

@@ -5,6 +5,7 @@ import SetBox from "@/components/SetBox.vue";
 import { useRouter } from "vue-router";
 import { getCurrentUser } from "@/apis/userApi";
 import { getRecentSet, getAllPublicSet, getLibrarySet } from "@/apis/setApi";
+import { getSuggestedWords } from "@/apis/wordApi"; // You'll need to create this API function
 
 const router = useRouter();
 
@@ -21,6 +22,8 @@ const librarySetsSize = ref(6); // Số lượng bộ thẻ trong thư viện m�
 const isLoadingRecent = ref(false); // Trạng thái tải bộ thẻ gần đây
 const isLoadingPublic = ref(false); // Trạng thái tải bộ thẻ công khai
 const isGuestMode = ref(false); // Kiểm tra xem người dùng có đang ở chế độ khách hay không
+const suggestedWords = ref([]);
+const isLoadingSuggestions = ref(false);
 
 // Kiểm tra token và thiết lập chế độ khách nếu không có token
 const checkAuthStatus = () => {
@@ -42,6 +45,23 @@ const fetchUserInfo = async (token) => {
     console.error("Error fetching user info:", error);
     isGuestMode.value = true; // Bật chế độ khách nếu có lỗi
     console.log("Guest mode activated: User API error");
+  }
+};
+
+const fetchSuggestedWords = async (token) => {
+  if (isGuestMode.value) return;
+
+  try {
+    isLoadingSuggestions.value = true;
+    const response = await getSuggestedWords(token);
+    suggestedWords.value = response || [];
+    for (let i = 0; i < suggestedWords.value.length; i++) {
+      suggestedWords.value[i] = (suggestedWords.value[i])[0].toUpperCase() + (suggestedWords.value[i]).slice(1); // Chuyển chữ cái đầu tiên thành chữ hoa
+    }
+  } catch (error) {
+    console.error("Error fetching suggested words:", error);
+  } finally {
+    isLoadingSuggestions.value = false;
   }
 };
 
@@ -113,7 +133,8 @@ const fetchAllData = async () => {
     if (!isGuestMode.value) {
       await Promise.all([ // Nếu không ở chế độ khách, lấy thêm bộ thẻ thư viện và bộ thẻ gần đây
         fetchLibrarySet(token),
-        fetchRecentSet(token, recentSetsPage.value)
+        fetchRecentSet(token, recentSetsPage.value),
+        fetchSuggestedWords(token) // Lấy từ gợi ý
       ]);
     }
   } catch (error) {
@@ -181,6 +202,10 @@ const getPageNumbers = (totalPages, currentPage) => {
   }
   return pages;
 };
+const openSetSelector = (word) => {
+  localStorage.setItem("recommendedWord", word);
+  window.dispatchEvent(new CustomEvent('recommendedWordSelected'));
+};
 </script>
 
 
@@ -230,6 +255,31 @@ const getPageNumbers = (totalPages, currentPage) => {
     </div>
 
     <div class="main-content">
+      <section v-if="!isGuestMode && suggestedWords.length > 0" class="content-section suggestions-section">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon">💡</span>
+            <h2>Word Suggestions</h2>
+          </div>
+        </div>
+
+        <div class="suggestions-container">
+          <div v-if="isLoadingSuggestions" class="loading-indicator">Loading suggestions...</div>
+
+          <div v-else class="suggestion-cards">
+            <div v-for="word in suggestedWords" :key="word" class="suggestion-card">
+              <div class="word-display">{{ word }}</div>
+              <div class="suggestion-actions">
+                <button @click="openSetSelector(word)" class="suggestion-btn add-to-set-btn">
+                  <span class="btn-icon">📂</span>
+                  Add to Set
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Recent Section -->
       <section v-if="!isGuestMode" class="content-section recent-section">
         <div class="section-header">
@@ -788,6 +838,188 @@ const getPageNumbers = (totalPages, currentPage) => {
 
   .section-title h2 {
     font-size: 1.4rem;
+  }
+}
+
+/* Suggestions Section */
+.suggestions-section {
+  background: linear-gradient(135deg, #fff 0%, #f7f0ff 100%);
+  border-left: 4px solid #9d65c9;
+}
+
+.suggestions-container {
+  padding: 1rem 0;
+}
+
+.suggestion-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.suggestion-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.suggestion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.word-display {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.suggestion-btn {
+  flex: 1;
+  padding: 0.7rem;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+}
+
+.create-set-btn {
+  background: linear-gradient(135deg, #9d65c9 0%, #6c5ce7 100%);
+  color: white;
+}
+
+.create-set-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(157, 101, 201, 0.3);
+}
+
+.add-to-set-btn {
+  background: white;
+  color: #9d65c9;
+  border: 1px solid #9d65c9;
+}
+
+.add-to-set-btn:hover {
+  background: #f7f0ff;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-btn:hover {
+  color: #ff6b6b;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.set-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.set-item {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.set-item:hover {
+  background: #f7f0ff;
+  border-color: #9d65c9;
+}
+
+.set-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.3rem;
+}
+
+.set-details {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .suggestion-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .suggestion-actions {
+    flex-direction: column;
   }
 }
 </style>

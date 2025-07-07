@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, defineProps, computed, onMounted } from 'vue'; // Import các hàm reactive và lifecycle hooks từ Vue
+import { ref, watch, defineProps, computed } from 'vue'; // Import các hàm reactive và lifecycle hooks từ Vue
 import { RouterLink } from 'vue-router'; // Import RouterLink để điều hướng giữa các trang
 import SetTable from "../components/SetTable.vue"; // Import component SetTable để hiển thị bảng thông tin bộ flashcard
 import OverlayBackground from "../components/OverlayBackground.vue"; // Import component OverlayBackground để hiển thị nền overlay
@@ -7,6 +7,7 @@ import SeachBar from './SeachBar.vue'; // Import component SeachBar để thực
 import ClassTable from './ClassTable.vue'; // Import component ClassTable để hiển thị bảng thông tin lớp học
 import NotificationList from './NotificationList.vue'; // Import component NotificationList để hiển thị danh sách thông báo
 import { useStore } from 'vuex'; // Import Vuex để quản lý trạng thái toàn cục
+import { onMounted, onUnmounted } from 'vue'
 
 // Định nghĩa các sự kiện phát ra từ component
 const emit = defineEmits(['reload']); // Sự kiện reload để làm mới dữ liệu
@@ -39,6 +40,18 @@ const searchItem = ref(""); // Từ khóa tìm kiếm
 const newItem = ref(false); // Trạng thái hiển thị menu tạo mới
 const classTable = ref(false); // Trạng thái hiển thị bảng lớp học
 const token = localStorage.getItem('token'); // Lấy token từ localStorage
+
+const handleWordSelected = (event) => {
+  performSearch("");
+}
+
+onMounted(() => {
+  window.addEventListener('recommendedWordSelected', handleWordSelected)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('recommendedWordSelected', handleWordSelected)
+})
 
 // Hàm reload dữ liệu
 const reload = () => {

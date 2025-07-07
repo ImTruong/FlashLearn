@@ -166,4 +166,9 @@ public class StudySessionServiceImpl implements StudySessionService {
 
         return newRemindTime;
     }
+
+    @Override
+    public List<String> getNClosestDistinctStudyWords(Long userId,int n) {
+        return studySessionRepository.getNClosestDistinctStudyWordsByUserEntityId(userId, n);
+    }
 }

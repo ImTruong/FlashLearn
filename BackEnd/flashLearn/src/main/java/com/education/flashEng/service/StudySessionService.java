@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface StudySessionService {
     boolean createStudySession(StudySessionRequest studySessionRequest);
@@ -24,4 +25,6 @@ public interface StudySessionService {
     Page<StatisticBySpecificWordResponse> getUsersStudyStatisticBySpecificWord(Long wordId, Pageable pageable);
 
     LocalDateTime getReminderTimeBasedOnLevel(StudySessionEntity studySessionEntity, LocalDateTime startTime);
+
+    List<String> getNClosestDistinctStudyWords(Long userId,int n);
 }
