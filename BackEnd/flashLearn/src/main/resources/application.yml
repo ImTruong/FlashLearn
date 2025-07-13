@@ -28,8 +28,4 @@ word2vec:
   max-suggestions: 10
   min-similarity: 0.3
 
-cloudinary:
-  cloudName: dqofcuddy
-  apiKey: 876145164613944
-  apiSecret: _fg29syjHV-witNIs4Z3psJdTQ0
 
