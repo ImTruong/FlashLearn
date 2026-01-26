@@ -8,6 +8,8 @@ import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
 import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -22,16 +24,34 @@ public class Word2VecServiceImpl implements Word2VecService {
 
     private WordVectors wordVectors;
 
-    @Value("${word2vec.model.path:GoogleNews-vectors-negative300.bin}")
+    @Value("${word2vec.model.path:classpath:GoogleNews-vectors-negative300.bin}")
     private String modelPath;
+
+    private final ResourceLoader resourceLoader;
+
+    public Word2VecServiceImpl(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
 
     @PostConstruct
     public void loadModel() {
         try {
             log.info("Bắt đầu tải Word2Vec model từ: {}", modelPath);
-            File modelFile = new File(modelPath);
-            if (!modelFile.exists()) {
-                throw new FileNotFoundException("Cannot find Word2Vec model file at: " + modelPath);
+            
+            File modelFile;
+            if (modelPath.startsWith("classpath:")) {
+                // Load from classpath
+                Resource resource = resourceLoader.getResource(modelPath);
+                if (!resource.exists()) {
+                    throw new FileNotFoundException("Cannot find Word2Vec model file at: " + modelPath);
+                }
+                modelFile = resource.getFile();
+            } else {
+                // Load from file system
+                modelFile = new File(modelPath);
+                if (!modelFile.exists()) {
+                    throw new FileNotFoundException("Cannot find Word2Vec model file at: " + modelPath);
+                }
             }
 
             // Load binary Word2Vec model
