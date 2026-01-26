@@ -2,7 +2,7 @@
 
 Lưu ý: Hãy chạy theo từng bước từ trên xuống.
 
-1.Cài đặt các môi trường Java 21, NodeJS, MySQL.
+1.Cài đặt các môi trường Java 21, NodeJS, MySQL, MongoDB.
 
 2.Tải model word2vec tại đường dẫn: https://github.com/eyaler/word2vec-slim/blob/master/GoogleNews-vectors-negative300-SLIM.bin.gz
 (Lưu ý: file gốc có dung lượng rất lớn khoảng 1.5GB, file SLIM đã được giảm dung lượng còn khoảng 300MB)
