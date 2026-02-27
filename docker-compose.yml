@@ -1,0 +1,116 @@
+services:
+  # MySQL Database Service
+  mysql:
+    image: mysql:8.0
+    container_name: flashlearn_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-12345678}
+      MYSQL_DATABASE: ${DB_NAME:-flash_learn}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - flashlearn_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  # MongoDB Service
+  mongodb:
+    image: mongo:6.0
+    container_name: flashlearn_mongodb
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-flash_learn_chat}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - flashlearn_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  # Backend Service (Java Spring Boot)
+  backend:
+    build:
+      context: ./BackEnd/flashLearn
+      dockerfile: Dockerfile
+    image: ${CI_REGISTRY_IMAGE:-flashlearn}/backend:${CI_COMMIT_REF_SLUG:-latest}
+    container_name: flashlearn_backend
+    environment:
+      # Database
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-flash_learn}
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-12345678}
+      
+      # MongoDB
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-flash_learn_chat}
+      
+      # Model AI Configuration
+      WORD2VEC_MODEL_PATH: /app/models/GoogleNews-vectors-negative300-SLIM.bin
+      
+      # Cấp RAM cho Java (Model AI cần khoảng 2-3GB RAM)
+      JAVA_OPTS: "-Xmx2g -Xms1g -Dorg.bytedeco.javacpp.maxbytes=2g"
+      
+      # Others
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-QhV1bbgiS2lzKg9ZCW2LyiOMr0popaPoaOdb4l+I68M=}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-dqofcuddy}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-876145164613944}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-_fg29syjHV-witNIs4Z3psJdTQ0}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      
+    volumes:
+      # Gắn file Model AI từ máy Mac vào Container
+      - ./BackEnd/flashLearn/src/main/resources/GoogleNews-vectors-negative300-SLIM.bin:/app/models/GoogleNews-vectors-negative300-SLIM.bin
+    
+    # Giới hạn RAM của Container trên Docker Desktop
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - flashlearn_network
+    restart: unless-stopped
+
+  # Frontend Service (Vue.js)
+  frontend:
+    build:
+      context: ./FrontEnd/FlashLearn
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+    image: ${CI_REGISTRY_IMAGE:-flashlearn}/frontend:${CI_COMMIT_REF_SLUG:-latest}
+    container_name: flashlearn_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - flashlearn_network
+    restart: unless-stopped
+
+networks:
+  flashlearn_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  mongo_data:

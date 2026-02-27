@@ -1,0 +1,34 @@
+image: docker:24.0.5
+
+# Sử dụng dịch vụ Docker-in-Docker (dind) để cho phép build image bên trong container
+services:
+  - name: docker:24.0.5-dind
+    alias: docker
+
+variables:
+  # Cấu hình để Docker dind không bắt buộc dùng TLS (giúp cài đặt đơn giản hơn)
+  DOCKER_TLS_CERTDIR: ""
+  BACKEND_IMAGE: $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_REF_SLUG
+  FRONTEND_IMAGE: $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_REF_SLUG
+
+stages:
+  - build
+
+# Job thực hiện build và push image
+build_and_push:
+  stage: build
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # 1. Kéo các image cũ về để tận dụng Layer Cache (giúp build nhanh hơn các lần sau)
+    - docker compose pull || true
+    
+    # 2. Build toàn bộ các dịch vụ có khai báo 'build' trong docker-compose.yml
+    # Lệnh này sẽ tự động build Backend và Frontend
+    - docker compose build
+    
+    # 3. Đẩy (Push) các image đã build lên GitLab Container Registry
+    - docker compose push
+  rules:
+    # Chỉ chạy pipeline này khi push code lên nhánh main
+    - if: $CI_COMMIT_BRANCH == "main"

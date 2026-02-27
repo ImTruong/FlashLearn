@@ -23,8 +23,7 @@ export const getSuggestedWords = async (token) => {
 // Lấy nghĩa của từ
 export const fetchWordAutomationData = async (word) => {
   try {
-    const response = await axios.get(`/api/meaning/${word}`, {
-    });
+        const response = await axios.get(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching meaning:', error);
